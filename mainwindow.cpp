@@ -24,7 +24,7 @@ void MainWindow::on_GenerateAndShow_clicked()
     QPixmap pxm=QPixmap::fromImage(Raw.toQImage());
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(pxm);
-    vector<short> a;
+    list<short> a;
     string b;
     Raw.toBrackets(a,b);
     cout<<b<<endl;

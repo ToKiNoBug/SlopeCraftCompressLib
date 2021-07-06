@@ -8,7 +8,7 @@
 #include <QRgb>
 #include <iostream>
 #include <cmath>
-#include <stack>
+#include <list>
 #include <queue>
 //#include "heightline.cpp"
 using namespace std;
@@ -22,7 +22,7 @@ public:
     int Size;//totalSize
     VectorXi Height;
     QImage toQImage();
-    void toBrackets(vector<short>&index,string&brackets);
+    void toBrackets(list<short>&index,string&brackets);
     void Sink(Node*);
 };
 

@@ -86,6 +86,11 @@ OptiTree::OptiTree()
     Stack.push(Root);
 }
 
+OptiTree::~OptiTree()
+{
+    delete Root;
+}
+
 inline Node* OptiTree::Current()
 {
     return Stack.top();
@@ -199,12 +204,12 @@ QImage HeightLine::toQImage()
     return img;
 }
 
-void HeightLine::toBrackets(vector<short> &index, string &brackets)
+void HeightLine::toBrackets(list<short> &index, string &brackets)
 {
     if(Size<=0)return;
     index.clear();brackets.clear();
     brackets+='(';index.push_back(0);
-    int LOffset=1,ROffset=1;
+    int LOffset=0,ROffset=0;
     stack<char>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
     for(int i=1;i<Size;i++)
     {
@@ -247,5 +252,90 @@ inline void HeightLine::Sink(Node*rg)
     {
         Height.segment(rg->Begin,rg->Length()).array()-=Height.segment(rg->Begin,rg->Length()).minCoeff();
         qDebug()<<"沉降了["<<rg->Begin<<','<<rg->End<<']';
+    }
+}
+
+void OptiTree::NaturalOpti(VectorXi &Raw)
+{
+    Root->Freeze();
+    gotoRoot();
+    HeightLine HL(Raw);
+    BuildTree(HL);
+    gotoRoot();
+    Compress(HL);
+}
+
+
+void OptiTree::BuildTree(HeightLine &HL)
+{
+    list<short> Index;string Brackets;
+    HL.toBrackets(Index,Brackets);
+    cout<<Brackets<<endl;
+    auto iI=Index.cbegin();
+    auto iB=Brackets.cbegin();
+
+    for(;iI!=Index.cend();)
+    {
+        if(*iB=='(')
+        {//左括号
+            if(Current()->isComplete())
+            {//如果当前节点已完成，创建侧链并写入Begin
+                Current()->creatSib()->Begin=*iI;
+                goNextSib();
+                iI++;iB++;continue;
+            }
+            else
+            {//如果当前节点Begin完成但End未完成，则创建子树，写入Begin
+                if(Current()->Begin>=0)
+                {
+                    Current()->creatChild()->Begin=*iI;
+                    goDown();
+                }
+                else
+                {//否则写入Begin
+                    Current()->Begin=*iI;
+                }
+            }
+        }
+
+        if(*iB==')')
+        {//右括号
+            if(Current()->isComplete())
+            {//如果当前节点已完成，则向上，写入End
+                goUp();
+                Current()->End=*iI;
+            }
+            else
+            {//如果当前节点未完成，则Begin必然已经完成（否则报错），写入End
+                if(Current()->Begin<0)
+                {
+                    qDebug("出现错误：不成对的括号：过多的右括号");
+                    return;
+                }
+                Current()->End=*iI;
+            }
+        }
+        iI++;iB++;
+    }
+    qDebug("优化树构建完毕");
+    cout<<endl;
+    Root->disp();
+    cout<<endl;
+}
+
+void OptiTree::Compress(HeightLine &HL)
+{
+    HL.Sink(Current());
+    if(Current()->haveChild())
+    {
+        goDown();
+        Compress(HL);
+        goUp();
+    }
+    if(Current()->haveSib())
+    {
+        goNextSib();
+        Compress(HL);
+        goPrevSib();
     }
 }
