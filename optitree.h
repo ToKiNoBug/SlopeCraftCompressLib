@@ -23,8 +23,12 @@ public:
     VectorXi Height;
     QImage toQImage();
     void toBrackets(list<short>&index,string&brackets);
+    void toBrackets_Near(list<short>&index,string&brackets);
+    bool isContinious();
     void Sink(Node*);
-    void SinkFloat();
+    void SinkMonotonous();
+    void SinkBoundary();
+    void SinkInner();
 };
 
 class Node//二叉链，与二叉树没有本质区别

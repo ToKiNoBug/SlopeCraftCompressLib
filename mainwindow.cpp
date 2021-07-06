@@ -20,7 +20,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_GenerateAndShow_clicked()
 {
-    Raw=HeightLine(32,'R');
+    Raw=HeightLine(129,'R');
     QPixmap pxm=QPixmap::fromImage(Raw.toQImage());
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(pxm);

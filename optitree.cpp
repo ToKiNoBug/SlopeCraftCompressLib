@@ -246,6 +246,48 @@ void HeightLine::toBrackets(list<short> &index, string &brackets)
 
 }
 
+bool HeightLine::isContinious()
+{
+    return (Height.segment(1,Size-2).array()-Height.segment(0,Size-2).array()==0).all();
+}
+
+void HeightLine::toBrackets_Near(list<short> &index, string &brackets)
+{
+
+}
+
+void HeightLine::SinkMonotonous()
+{
+    if(isContinious())return;
+    int IndexB=0,IndexE=0;
+    int gapB=0,gapE=0;//表示不连续段的落差绝对值
+    bool isReady=false,isIncrease=false;
+    for(int i=1;i<Size;i++)
+    {
+        isReady=isReady&&(isIncrease==(Height(i)>Height(i-1)));//如果区间不单调，不予沉降
+        if(abs(Height(i)-Height(i-1))>=2)//出现不连续
+        {
+            if(!isReady)//进入了不连续区间
+            {
+                isIncrease=Height(i)>Height(i-1);
+                gapB=abs(Height(i)-Height(i-1))-1;
+                isReady=true;
+                IndexB=i;
+                continue;
+            }
+            if(isReady)//将要结束一个不连续单调区间
+            {
+                gapE=abs(Height(i)-Height(i-1))-1;
+                IndexE=i-1;
+                Height.segment(IndexB,IndexE-IndexB+1).array()-=min(isIncrease?gapB:gapE,Height.segment(IndexB,IndexE-IndexB+1).minCoeff());
+                isReady=false;
+                IndexB=-1;IndexE=-1;
+                qDebug()<<"沉降了一个漂浮单调递"<<(isIncrease?"增":"减")<<"区间";
+            }
+        }
+    }
+}
+
 inline void HeightLine::Sink(Node*rg)
 {
     if(rg->isComplete())
@@ -255,8 +297,9 @@ inline void HeightLine::Sink(Node*rg)
     }
 }
 
-void HeightLine::SinkFloat()
+void HeightLine::SinkBoundary()
 {
+    if(isContinious())return;
     int gapB=0,gapE=0;
     for(int i=0;i<Size-1;i++)//正向遍历，去除前端浮空
     {
@@ -278,8 +321,36 @@ void HeightLine::SinkFloat()
         }
     }
 
-    int FBegin=1,FEnd=Size-1;
+    /*int FBegin=1,FEnd=Size-1;
     bool isReady=false;
+    bool isBSinkable=false,isESinkable=false;
+    for(int i=1;i<Size;i++)
+    {
+        if(abs(Height(i)-Height(i-1))>=2)
+        {
+            if(!isReady)
+            {
+                FBegin=i;
+                gapB=Height(i)-Height(i-1);
+                isBSinkable=gapB>0;
+                gapB=abs(gapB)-1;
+                isReady=true;
+                continue;
+            }
+            if(isReady)
+            {
+                FEnd=i-1;
+                gapE=Height(i)-Height(i-1);
+                isESinkable=gapE<0;
+                gapE=abs(gapE)-1;
+                Height.segment(FBegin,FEnd-FBegin+1).array()-=min(min(isBSinkable*gapB,isESinkable*gapE),Height.segment(FBegin,FEnd-FBegin+1).minCoeff());
+                isReady=false;
+
+            }
+        }
+    }
+
+
     for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
     {
         if(Height(i)-Height(i-1)>=2)//左浮空
@@ -295,9 +366,45 @@ void HeightLine::SinkFloat()
             qDebug("沉降了中间的漂浮段");
             isReady=false;
         }
-    }
+    }*/
 
 }
+
+void HeightLine::SinkInner()
+{
+    queue<short>Gap,Index;//取断崖的前值为index
+    int GapVal=0,IndexVal=0;
+    bool isBSinkable=false,isESinkable=false;
+    int Offset=0;
+    for(int i=1;i<Size;i++)
+    {
+        if(abs(GapVal=Height(i)-Height(i-1))>=2)
+        {
+            Gap.push(GapVal);//Gap值为后减前
+            Index.push(i-1);
+            qDebug()<<i-1;
+        }
+    }
+    if(Gap.size()<=1)return;
+    do
+    {
+        GapVal=Gap.front();IndexVal=Index.front();
+        Gap.pop();Index.pop();
+        isBSinkable=GapVal>0;//对于一段内部连续的区间，前沟大于0才有意义
+        isESinkable=Gap.front()<0;
+        if(!isBSinkable&&!isESinkable)continue;
+        if(isBSinkable&&isESinkable)
+            Offset=min(GapVal,abs(Gap.front()))-1;
+        if(isBSinkable&&!isESinkable)
+            Offset=abs(Gap.front())-1;
+        if(!isBSinkable&&isESinkable)
+            Offset=GapVal-1;
+        Height.segment(IndexVal,Index.front()-IndexVal+1).array()-=min(Offset,Height.segment(IndexVal,Index.front()-IndexVal+1).minCoeff());
+    }
+    while(!Gap.empty());
+
+}
+
 
 void OptiTree::NaturalOpti(VectorXi &Raw)
 {
@@ -307,7 +414,10 @@ void OptiTree::NaturalOpti(VectorXi &Raw)
     BuildTree(HL);
     gotoRoot();
     Compress(HL);
+    //HL.SinkMonotonous();
     //HL.SinkFloat();
+    HL.SinkBoundary();
+    HL.SinkInner();
     Raw=HL.Height;
 }
 
@@ -371,6 +481,24 @@ void OptiTree::BuildTree(HeightLine &HL)
 
 void OptiTree::Compress(HeightLine &HL)
 {
+    queue<Node*> Que;
+    Que.push(Root);
+    Node *Temp=NULL;
+    while(!Que.empty())
+    {
+        HL.Sink(Temp=Que.front());
+        Que.pop();
+        if(Temp->haveSib())
+        {
+            Que.push(Temp->Sib);
+        }
+        if(Temp->haveChild())
+        {
+            Que.push(Temp->Child);
+        }
+
+    }
+    /*//DFS中序遍历
     HL.Sink(Current());
     if(Current()->haveChild())
     {
@@ -383,5 +511,5 @@ void OptiTree::Compress(HeightLine &HL)
         goNextSib();
         Compress(HL);
         goPrevSib();
-    }
+    }*/
 }
