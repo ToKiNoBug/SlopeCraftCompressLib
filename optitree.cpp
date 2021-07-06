@@ -255,6 +255,50 @@ inline void HeightLine::Sink(Node*rg)
     }
 }
 
+void HeightLine::SinkFloat()
+{
+    int gapB=0,gapE=0;
+    for(int i=0;i<Size-1;i++)//正向遍历，去除前端浮空
+    {
+        if(Height(i)-Height(i+1)>=2)//右浮空
+        {
+            gapE=Height(i)-Height(i+1);//表示不连续段的落差
+            Height.segment(0,i+1).array()-=min(gapE-1,Height.segment(0,i+1).minCoeff());
+            break;
+        }
+    }
+
+    for(int i=Size-1;i>0;i--)
+    {
+        if(Height(i)-Height(i-1)>=2)//左浮空
+        {
+            gapB=Height(i)-Height(i-1);
+            Height.segment(i,Size-i).array()-=min(gapB-1,Height.segment(i,Size-i).minCoeff());
+            break;
+        }
+    }
+
+    int FBegin=1,FEnd=Size-1;
+    bool isReady=false;
+    for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
+    {
+        if(Height(i)-Height(i-1)>=2)//左浮空
+        {FBegin=i;
+            gapB=Height(i)-Height(i-1);
+            isReady=true;
+        }
+        if(Height(i)-Height(i+1)>=2&&isReady)//右浮空
+        {
+            FEnd=i;
+            gapE=Height(i)-Height(i+1);
+            Height.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,Height.segment(FBegin,FEnd-FBegin+1).minCoeff());
+            qDebug("沉降了中间的漂浮段");
+            isReady=false;
+        }
+    }
+
+}
+
 void OptiTree::NaturalOpti(VectorXi &Raw)
 {
     Root->Freeze();
@@ -263,6 +307,8 @@ void OptiTree::NaturalOpti(VectorXi &Raw)
     BuildTree(HL);
     gotoRoot();
     Compress(HL);
+    //HL.SinkFloat();
+    Raw=HL.Height;
 }
 
 

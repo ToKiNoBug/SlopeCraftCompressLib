@@ -20,7 +20,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_GenerateAndShow_clicked()
 {
-    Raw=HeightLine(16,'R');
+    Raw=HeightLine(32,'R');
     QPixmap pxm=QPixmap::fromImage(Raw.toQImage());
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(pxm);
@@ -48,5 +48,6 @@ void MainWindow::on_doCompress_clicked()
     Tree.NaturalOpti(Result.Height);
     //Tree.disp();
     ui->ShowResult->setPixmap(QPixmap::fromImage(Result.toQImage()));
+    qDebug()<<"压缩率："<<100.0-100.0*Result.Height.maxCoeff()/Raw.Height.maxCoeff()<<"%";
 }
 

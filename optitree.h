@@ -24,6 +24,7 @@ public:
     QImage toQImage();
     void toBrackets(list<short>&index,string&brackets);
     void Sink(Node*);
+    void SinkFloat();
 };
 
 class Node//二叉链，与二叉树没有本质区别
