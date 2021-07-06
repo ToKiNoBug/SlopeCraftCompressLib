@@ -39,6 +39,7 @@ public:
     bool isAble;
     short Degree;
     bool isComplete();
+    short Length();
     void Freeze();
     bool haveChild();//指有无激活的子树
     bool haveSib();//指有无激活的平级树
