@@ -321,9 +321,10 @@ void HeightLine::SinkBoundary()
         }
     }
 
-    /*int FBegin=1,FEnd=Size-1;
+    int FBegin=1,FEnd=Size-1;
     bool isReady=false;
     bool isBSinkable=false,isESinkable=false;
+    /*
     for(int i=1;i<Size;i++)
     {
         if(abs(Height(i)-Height(i-1))>=2)
@@ -348,7 +349,7 @@ void HeightLine::SinkBoundary()
 
             }
         }
-    }
+    }*/
 
 
     for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
@@ -366,7 +367,7 @@ void HeightLine::SinkBoundary()
             qDebug("沉降了中间的漂浮段");
             isReady=false;
         }
-    }*/
+    }
 
 }
 
@@ -416,8 +417,8 @@ void OptiTree::NaturalOpti(VectorXi &Raw)
     Compress(HL);
     //HL.SinkMonotonous();
     //HL.SinkFloat();
-    HL.SinkBoundary();
-    HL.SinkInner();
+    //HL.SinkBoundary();
+    //HL.SinkInner();
     Raw=HL.Height;
 }
 
@@ -481,7 +482,7 @@ void OptiTree::BuildTree(HeightLine &HL)
 
 void OptiTree::Compress(HeightLine &HL)
 {
-    queue<Node*> Que;
+    /*queue<Node*> Que;
     Que.push(Root);
     Node *Temp=NULL;
     while(!Que.empty())
@@ -497,8 +498,8 @@ void OptiTree::Compress(HeightLine &HL)
             Que.push(Temp->Child);
         }
 
-    }
-    /*//DFS中序遍历
+    }*/
+    //DFS中序遍历
     HL.Sink(Current());
     if(Current()->haveChild())
     {
@@ -511,5 +512,5 @@ void OptiTree::Compress(HeightLine &HL)
         goNextSib();
         Compress(HL);
         goPrevSib();
-    }*/
+    }
 }

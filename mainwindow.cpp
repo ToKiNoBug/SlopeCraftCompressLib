@@ -49,5 +49,26 @@ void MainWindow::on_doCompress_clicked()
     //Tree.disp();
     ui->ShowResult->setPixmap(QPixmap::fromImage(Result.toQImage()));
     qDebug()<<"压缩率："<<100.0-100.0*Result.Height.maxCoeff()/Raw.Height.maxCoeff()<<"%";
+    auto newDepth=Result.Height.segment(1,Result.Size-1).array()-Result.Height.segment(0,Result.Size-1).array();
+    auto OldDepth=Raw.Height.segment(1,Raw.Size-1).array()-Raw.Height.segment(0,Raw.Size-1).array();
+    if((newDepth*OldDepth<0).any())
+        qDebug("旧Depth与新Depth不同");
+    else
+        qDebug("压缩后Depth不变");
+}
+
+
+void MainWindow::on_SinkFloat_clicked()
+{
+    Result.SinkBoundary();
+    Result.SinkBoundary();
+    ui->ShowResultSinked->setPixmap(QPixmap::fromImage(Result.toQImage()));
+    qDebug()<<"沉降浮空后压缩率："<<100.0-100.0*Result.Height.maxCoeff()/Raw.Height.maxCoeff()<<"%";
+    auto newDepth=Result.Height.segment(1,Result.Size-1).array()-Result.Height.segment(0,Result.Size-1).array();
+    auto OldDepth=Raw.Height.segment(1,Raw.Size-1).array()-Raw.Height.segment(0,Raw.Size-1).array();
+    if((newDepth*OldDepth<0).any())
+        qDebug("旧Depth与新Depth不同");
+    else
+        qDebug("压缩后Depth不变");
 }
 
