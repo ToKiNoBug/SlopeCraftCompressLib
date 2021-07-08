@@ -35,11 +35,14 @@ public:
 class Node//二叉链，与二叉树没有本质区别
 {
 public:
-    short Begin;
-    short End;
     Node(short beg=-1,short end=-1);
     ~Node();
     void disp();
+    friend class OptiTree;
+    friend class HeightLine;
+private:
+    short Begin;
+    short End;
     Node *Child;
     Node *Sib;
     bool isAble;
@@ -49,7 +52,6 @@ public:
     void Freeze();
     bool haveChild();//指有无激活的子树
     bool haveSib();//指有无激活的平级树
-
     Node* creatChild();
     Node* creatSib();
 };
@@ -58,8 +60,11 @@ class OptiTree
 {
 public:
     OptiTree();
-    Node *Current();
     ~OptiTree();//析构函数，删除所有节点
+    void ShowTree();
+    void NaturalOpti(VectorXi&);
+private:
+    Node *Current();
     void goUp();
     void goDown();
     void goNextSib();
@@ -67,10 +72,10 @@ public:
     bool isRoot();
 
     void gotoRoot();
-    void NaturalOpti(VectorXi&);
+
     void BuildTree(HeightLine&);
     void Compress(HeightLine&);
-    void ShowTree();
+
     void FreezeTree();
     Node*Root;
     stack<Node*> Stack;

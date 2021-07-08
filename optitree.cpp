@@ -1,5 +1,5 @@
 #include "optitree.h"
-#define HL_Rand_1
+//#define HL_Rand_1
 Node::Node(short beg,short end)
 {
     Begin=beg;
@@ -186,13 +186,19 @@ HeightLine::HeightLine(int _size,char method)
         Height-=3*(Height/3);
         Height.array()-=1;
 #else
-        Height-=3*(Height/3);
-        Height.array()-=5;//-5~4
+        Height-=10*(Height/10);
+        Height.array()-=3;//-3~7
         Height=(Height.array()>0).select(Height,-1);
         Height=(Height.array()<2).select(Height,0);
         Height=(Height.array()<=0).select(Height,1);
+
+        static bool isFirst=true;
+        if(isFirst)
+        {
         srand(time(0));
-        if(rand()<=RAND_MAX/2)
+        isFirst=false;
+        }
+        if(rand()%2)
             Height*=-1;
 #endif
         /*Height=(Height.array()<=0).select(Height,1);
@@ -214,7 +220,7 @@ HeightLine::HeightLine(const VectorXi&parent)
 
 QImage HeightLine::toQImage()
 {
-    QImage img(Size,max(Height.maxCoeff()+1,Size/5),QImage::Format_ARGB32);
+    QImage img(Size,max(Height.maxCoeff()+1,min(Size/5,100)),QImage::Format_ARGB32);
     QRgb isT=qRgb(0,0,0),isF=qRgb(255,255,255);
     img.fill(isF);
 
@@ -434,7 +440,8 @@ void OptiTree::NaturalOpti(VectorXi &Raw)
     BuildTree(HL);
     gotoRoot();
     Compress(HL);
-
+    HL.SinkBoundary();
+    HL.SinkBoundary();
     Raw=HL.Height;
 }
 

@@ -22,8 +22,6 @@ private slots:
 
     void on_doCompress_clicked();
 
-    void on_SinkFloat_clicked();
-
 private:
     Ui::MainWindow *ui;
 };
