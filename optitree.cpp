@@ -1,5 +1,5 @@
 #include "optitree.h"
-
+#define HL_Rand_1
 Node::Node(short beg,short end)
 {
     Begin=beg;
@@ -46,6 +46,7 @@ Node* Node::creatChild()
     if(haveChild())
     {
         qDebug("已存在激活的子树，不能creatChild");
+        Child->Degree=Degree+1;
         return Child;
     }
     if(Child==NULL)Child=new Node;
@@ -60,6 +61,7 @@ Node* Node::creatSib()
     if(haveSib())
     {
         qDebug("已存在激活的侧链，不能creatSib");
+        Sib->Degree=Degree;
         return Sib;
     }
     if(Sib==NULL)Sib=new Node;
@@ -71,6 +73,7 @@ Node* Node::creatSib()
 
 void Node::Freeze()
 {
+    Begin=-1;End=-1;
     if(!isAble)return;
     isAble=false;
     if(haveChild())Child->Freeze();
@@ -131,9 +134,10 @@ void OptiTree::goNextSib()
 
 void OptiTree::goPrevSib()
 {
+    preventEmpty();
     Node*Temp=Current();
     Stack.pop();
-    if(Current()->Degree!=Temp->Degree)
+    if(Current()->Degree!=Temp->Degree||Current()->Sib!=Temp)
     {
         qDebug("goPrevSib失败");
         Stack.push(Temp);
@@ -144,14 +148,18 @@ void OptiTree::goPrevSib()
 
 void OptiTree::goUp()
 {
+    preventEmpty();
     Node*Temp=Current();
+    //qDebug("开始goUp");
     while(!(Current()->Degree+1==Temp->Degree))Stack.pop();
+    //qDebug("goUp成功");
 }
 
 void OptiTree::gotoRoot()
 {
+    while(!Stack.empty())Stack.pop();
     preventEmpty();
-    while(Current()!=Root)Stack.pop();
+    //qDebug("gotoRoot成功");
 }
 
 inline void OptiTree::preventEmpty()
@@ -174,9 +182,11 @@ HeightLine::HeightLine(int _size,char method)
     {
         Height.setRandom();
         Height.array()-=Height.minCoeff();
-        Height-=10*(Height/10);
-        //Height.array()-=1;
-
+#ifdef HL_Rand_1
+        Height-=3*(Height/3);
+        Height.array()-=1;
+#else
+        Height-=3*(Height/3);
         Height.array()-=5;//-5~4
         Height=(Height.array()>0).select(Height,-1);
         Height=(Height.array()<2).select(Height,0);
@@ -184,7 +194,7 @@ HeightLine::HeightLine(int _size,char method)
         srand(time(0));
         if(rand()<=RAND_MAX/2)
             Height*=-1;
-
+#endif
         /*Height=(Height.array()<=0).select(Height,1);
         Height=(Height.array()>=0).select(Height,-1);*/
         for(int i=1;i<Size;i++)
@@ -213,7 +223,7 @@ QImage HeightLine::toQImage()
     return img;
 }
 
-void HeightLine::toBrackets(list<short> &index, list<char> &brackets)
+void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
 {
     if(Size<=0)return;
     index.clear();brackets.clear();
@@ -239,13 +249,13 @@ void HeightLine::toBrackets(list<short> &index, list<char> &brackets)
     }
     ROffset+=1+S.size();
 
-    qDebug()<<"LOffset="<<LOffset<<";  ROffset="<<ROffset;
+    //qDebug()<<"LOffset="<<LOffset<<";  ROffset="<<ROffset;
     //cout<<"Raw="<<brackets<<endl;
 
     for(;LOffset>0;LOffset--)
     {
         index.insert(index.begin(),0);
-        brackets.insert(brackets.begin(),'(');
+        brackets.push_front('(');
     }
     for(;ROffset>0;ROffset--)
     {
@@ -437,18 +447,20 @@ void OptiTree::BuildTree(HeightLine &HL)
     list<short> Index;list<char> Brackets;
     HL.toBrackets(Index,Brackets);
     //cout<<Brackets<<endl;
-    auto iI=Index.cbegin();
-    auto iB=Brackets.cbegin();
+    auto iI=Index.begin();
+    auto iB=Brackets.begin();
+    qDebug("开始BuildTree");
 
-    for(;iI!=Index.cend();)
+    for(;iI!=Index.end();)
     {
         if(*iB=='(')
         {//左括号
+            //cout<<'(';
             if(Current()->isComplete())
             {//如果当前节点已完成，创建侧链并写入Begin
                 Current()->creatSib()->Begin=*iI;
                 goNextSib();
-                iI++;iB++;continue;
+                //iI++;iB++;continue;
             }
             else
             {//如果当前节点Begin完成但End未完成，则创建子树，写入Begin
@@ -466,8 +478,10 @@ void OptiTree::BuildTree(HeightLine &HL)
 
         if(*iB==')')
         {//右括号
+            //cout<<')';
             if(Current()->isComplete())
             {//如果当前节点已完成，则向上，写入End
+                //qDebug()<<"当前度数"<<Current()->Degree<<"，即将goUp";
                 goUp();
                 Current()->End=*iI;
             }
@@ -483,6 +497,7 @@ void OptiTree::BuildTree(HeightLine &HL)
         }
         iI++;iB++;
     }
+    cout<<endl;
     qDebug("优化树构建完毕");
 
 }

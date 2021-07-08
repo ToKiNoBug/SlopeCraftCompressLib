@@ -2,7 +2,7 @@
 #define OPTITREE_H
 #include<stack>
 #include <QDebug>
-#include <vector>
+//#include <QList>
 #include <QImage>
 #include <Eigen/Dense>
 #include <QRgb>
