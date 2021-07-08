@@ -1,5 +1,8 @@
 #include "optitree.h"
 //#define HL_Rand_1
+
+#define HighThreshold 1.5/3
+#define LowThreshold 0.1/3
 Node::Node(short beg,short end)
 {
     Begin=beg;
@@ -180,24 +183,31 @@ HeightLine::HeightLine(int _size,char method)
     Height.resize(Size);
     if(method=='R')
     {
+
+#ifdef HL_Rand_1
         Height.setRandom();
         Height.array()-=Height.minCoeff();
-#ifdef HL_Rand_1
         Height-=3*(Height/3);
         Height.array()-=1;
 #else
-        Height-=10*(Height/10);
-        Height.array()-=3;//-3~7
-        Height=(Height.array()>0).select(Height,-1);
-        Height=(Height.array()<2).select(Height,0);
-        Height=(Height.array()<=0).select(Height,1);
-
+        Height.setZero();
         static bool isFirst=true;
         if(isFirst)
         {
         srand(time(0));
         isFirst=false;
         }
+        float x=(rand()%32768)/32767.0;
+        for(int i=0;i<Size;i++)
+        {
+            x=4.0*x*(1.0-x);
+            if(x>HighThreshold)
+                Height(i)=1;
+            if(x<LowThreshold)
+                Height(i)=-1;
+        }
+
+
         if(rand()%2)
             Height*=-1;
 #endif

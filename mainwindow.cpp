@@ -20,10 +20,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_GenerateAndShow_clicked()
 {
-    Raw=HeightLine(1024+1,'R');
+    Raw=HeightLine(64+1,'R');
     //QPixmap pxm=;
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
-    ui->ShowHeightLine->setPixmap(QPixmap::fromImage(Raw.toQImage().scaledToWidth(ui->ShowHeightLine->width())));
+    ui->ShowHeightLine->setPixmap(QPixmap::fromImage(Raw.toQImage().scaled(ui->ShowHeightLine->width(),ui->ShowHeightLine->height())));
     //list<short> a;
     //string b;
     //Raw.toBrackets(a,b);
@@ -38,9 +38,10 @@ void MainWindow::on_doCompress_clicked()
     static OptiTree Tree;
     Result=HeightLine(Raw.Height);
     //cout<<Result.Height.rows()<<','<<Result.Height.cols()<<endl;
+    auto t=clock();
     Tree.NaturalOpti(Result.Height);
-
-    ui->ShowResult->setPixmap(QPixmap::fromImage(Result.toQImage().scaledToWidth(ui->ShowResult->width())));
+    qDebug()<<"用时："<<clock()-t;
+    ui->ShowResult->setPixmap(QPixmap::fromImage(Result.toQImage().scaled(ui->ShowResult->width(),ui->ShowResult->height())));
 
     qDebug()<<"压缩后高度"<<Result.Height.maxCoeff();
     qDebug()<<"极值压缩率："<<100.0-100.0*Result.Height.maxCoeff()/Raw.Height.maxCoeff()<<"%";
