@@ -49,8 +49,8 @@ Node* Node::creatChild()
         return Child;
     }
     if(Child==NULL)Child=new Node;
-    else
-        Child->isAble=true;
+
+    Child->isAble=true;
     Child->Degree=Degree+1;
     return Child;
 }
@@ -63,8 +63,8 @@ Node* Node::creatSib()
         return Sib;
     }
     if(Sib==NULL)Sib=new Node;
-    else
-        Sib->isAble=true;
+
+    Sib->isAble=true;
     Sib->Degree=Degree;
     return Sib;
 }
@@ -115,7 +115,7 @@ void OptiTree::goDown()
         return;
     }
     Stack.push(Current()->Child);
-    qDebug("goDown成功");
+    //qDebug("goDown成功");
 }
 
 void OptiTree::goNextSib()
@@ -126,7 +126,7 @@ void OptiTree::goNextSib()
         return;
     }
     Stack.push(Current()->Sib);
-    qDebug("goNextSib成功");
+    //qDebug("goNextSib成功");
 }
 
 void OptiTree::goPrevSib()
@@ -139,7 +139,7 @@ void OptiTree::goPrevSib()
         Stack.push(Temp);
         return;
     }
-    qDebug("goPrevSib成功");
+    //qDebug("goPrevSib成功");
 }
 
 void OptiTree::goUp()
@@ -174,8 +174,17 @@ HeightLine::HeightLine(int _size,char method)
     {
         Height.setRandom();
         Height.array()-=Height.minCoeff();
-        Height-=3*(Height/3);
-        Height.array()-=1;
+        Height-=10*(Height/10);
+        //Height.array()-=1;
+
+        Height.array()-=5;//-5~4
+        Height=(Height.array()>0).select(Height,-1);
+        Height=(Height.array()<2).select(Height,0);
+        Height=(Height.array()<=0).select(Height,1);
+        srand(time(0));
+        if(rand()<=RAND_MAX/2)
+            Height*=-1;
+
         /*Height=(Height.array()<=0).select(Height,1);
         Height=(Height.array()>=0).select(Height,-1);*/
         for(int i=1;i<Size;i++)
@@ -204,11 +213,11 @@ QImage HeightLine::toQImage()
     return img;
 }
 
-void HeightLine::toBrackets(list<short> &index, string &brackets)
+void HeightLine::toBrackets(list<short> &index, list<char> &brackets)
 {
     if(Size<=0)return;
     index.clear();brackets.clear();
-    brackets+='(';index.push_back(0);
+    brackets.push_back('(');index.push_back(0);
     int LOffset=0,ROffset=0;
     stack<char>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
     for(int i=1;i<Size;i++)
@@ -251,12 +260,13 @@ bool HeightLine::isContinious()
     return (Height.segment(1,Size-2).array()-Height.segment(0,Size-2).array()==0).all();
 }
 
+/*
 void HeightLine::toBrackets_Near(list<short> &index, string &brackets)
 {
 
-}
+}*/
 
-void HeightLine::SinkMonotonous()
+/*void HeightLine::SinkMonotonous()
 {
     if(isContinious())return;
     int IndexB=0,IndexE=0;
@@ -286,14 +296,14 @@ void HeightLine::SinkMonotonous()
             }
         }
     }
-}
+}*/
 
 inline void HeightLine::Sink(Node*rg)
 {
     if(rg->isComplete())
     {
         Height.segment(rg->Begin,rg->Length()).array()-=Height.segment(rg->Begin,rg->Length()).minCoeff();
-        qDebug()<<"沉降了["<<rg->Begin<<','<<rg->End<<']';
+        //qDebug()<<"沉降了["<<rg->Begin<<','<<rg->End<<']';
     }
 }
 
@@ -323,7 +333,7 @@ void HeightLine::SinkBoundary()
 
     int FBegin=1,FEnd=Size-1;
     bool isReady=false;
-    bool isBSinkable=false,isESinkable=false;
+    //bool isBSinkable=false,isESinkable=false;
     /*
     for(int i=1;i<Size;i++)
     {
@@ -364,14 +374,14 @@ void HeightLine::SinkBoundary()
             FEnd=i;
             gapE=Height(i)-Height(i+1);
             Height.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,Height.segment(FBegin,FEnd-FBegin+1).minCoeff());
-            qDebug("沉降了中间的漂浮段");
+            //qDebug("沉降了中间的漂浮段");
             isReady=false;
         }
     }
 
 }
 
-void HeightLine::SinkInner()
+/*void HeightLine::SinkInner()
 {
     queue<short>Gap,Index;//取断崖的前值为index
     int GapVal=0,IndexVal=0;
@@ -404,30 +414,29 @@ void HeightLine::SinkInner()
     }
     while(!Gap.empty());
 
-}
+}*/
 
 
 void OptiTree::NaturalOpti(VectorXi &Raw)
 {
-    Root->Freeze();
-    gotoRoot();
+
     HeightLine HL(Raw);
     BuildTree(HL);
     gotoRoot();
     Compress(HL);
-    //HL.SinkMonotonous();
-    //HL.SinkFloat();
-    //HL.SinkBoundary();
-    //HL.SinkInner();
+
     Raw=HL.Height;
 }
 
 
 void OptiTree::BuildTree(HeightLine &HL)
 {
-    list<short> Index;string Brackets;
+    FreezeTree();
+    gotoRoot();
+    preventEmpty();
+    list<short> Index;list<char> Brackets;
     HL.toBrackets(Index,Brackets);
-    cout<<Brackets<<endl;
+    //cout<<Brackets<<endl;
     auto iI=Index.cbegin();
     auto iB=Brackets.cbegin();
 
@@ -475,9 +484,7 @@ void OptiTree::BuildTree(HeightLine &HL)
         iI++;iB++;
     }
     qDebug("优化树构建完毕");
-    cout<<endl;
-    Root->disp();
-    cout<<endl;
+
 }
 
 void OptiTree::Compress(HeightLine &HL)
@@ -513,4 +520,17 @@ void OptiTree::Compress(HeightLine &HL)
         Compress(HL);
         goPrevSib();
     }
+}
+
+void OptiTree::FreezeTree()
+{
+    Root->Freeze();
+    Root->isAble=true;
+}
+
+void OptiTree::ShowTree()
+{
+    cout<<endl;
+    Root->disp();
+    cout<<endl;
 }

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <list>
 #include <queue>
+#include <cmath>
 //#include "heightline.cpp"
 using namespace std;
 using namespace Eigen;
@@ -22,13 +23,13 @@ public:
     int Size;//totalSize
     VectorXi Height;
     QImage toQImage();
-    void toBrackets(list<short>&index,string&brackets);
-    void toBrackets_Near(list<short>&index,string&brackets);
+    void toBrackets(list<short>&index,list<char>&brackets);
+    //void toBrackets_Near(list<short>&index,list<char>&brackets);
     bool isContinious();
     void Sink(Node*);
-    void SinkMonotonous();
+    //void SinkMonotonous();
     void SinkBoundary();
-    void SinkInner();
+    //void SinkInner();
 };
 
 class Node//二叉链，与二叉树没有本质区别
@@ -69,7 +70,8 @@ public:
     void NaturalOpti(VectorXi&);
     void BuildTree(HeightLine&);
     void Compress(HeightLine&);
-
+    void ShowTree();
+    void FreezeTree();
     Node*Root;
     stack<Node*> Stack;
     void preventEmpty();

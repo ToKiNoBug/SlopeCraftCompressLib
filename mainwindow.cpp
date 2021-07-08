@@ -20,32 +20,29 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_GenerateAndShow_clicked()
 {
-    Raw=HeightLine(129,'R');
+    Raw=HeightLine(16,'R');
     QPixmap pxm=QPixmap::fromImage(Raw.toQImage());
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(pxm);
-    list<short> a;
-    string b;
-    Raw.toBrackets(a,b);
-    cout<<b<<endl;
-    /*for(unsigned int i=0;i<a.size();i++)
-        cout<<setw(4)<<b[i];
+    //list<short> a;
+    //string b;
+    //Raw.toBrackets(a,b);
+    //cout<<b<<endl;
+    qDebug()<<"Raw高度"<<Raw.Height.maxCoeff()+1;
 
-    cout<<endl;
-    for(unsigned int i=0;i<a.size();i++)
-        cout<<setw(4)<<a[i];
-    cout<<endl;*/
-
-    //ui->ShowHeightLine->set
 }
 
 
 void MainWindow::on_doCompress_clicked()
 {
-    OptiTree Tree;
+    static OptiTree Tree;
     Result=HeightLine(Raw.Height);
-    cout<<Result.Height.rows()<<','<<Result.Height.cols()<<endl;
+    //cout<<Result.Height.rows()<<','<<Result.Height.cols()<<endl;
     Tree.NaturalOpti(Result.Height);
+    Tree.ShowTree();
+    Tree.FreezeTree();
+    qDebug("Freeze");
+    Tree.ShowTree();
     //Tree.disp();
     ui->ShowResult->setPixmap(QPixmap::fromImage(Result.toQImage()));
     qDebug()<<"压缩率："<<100.0-100.0*Result.Height.maxCoeff()/Raw.Height.maxCoeff()<<"%";
@@ -55,6 +52,9 @@ void MainWindow::on_doCompress_clicked()
         qDebug("旧Depth与新Depth不同");
     else
         qDebug("压缩后Depth不变");
+    /*Tree.Root->disp();
+    Tree.Root->Freeze();
+    Tree.Root->disp();*/
 }
 
 
@@ -70,5 +70,6 @@ void MainWindow::on_SinkFloat_clicked()
         qDebug("旧Depth与新Depth不同");
     else
         qDebug("压缩后Depth不变");
+    qDebug()<<"压缩后高度"<<Result.Height.maxCoeff()+1;
 }
 
