@@ -304,16 +304,31 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
     index.clear();brackets.clear();
     brackets.push_back('(');index.push_back(0);
     int LOffset=0,ROffset=0;
-    stack<char>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
+    stack<short>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
+    short lastLeftIndex=0;
+    //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
     for(int i=1;i<Size;i++)
     {
-        if(HighLine(i)<HighLine(i-1))//下降处，是孤立区间的起始
+        if(isWater(i))
+        {//遇到水柱，则先画一个右括号，再画一个左括号
+            if(S.empty())LOffset++;
+            else
+                S.pop();
+            brackets.push_back(')');
+            index.push_back(i-1);
+            S.push('F');
+            brackets.push_back('(');
+            index.push_back(i);
+            continue;
+        }
+        if(validHigh(i)<validHigh(i-1))//下降处，是孤立区间的起始
         {
             S.push('F');
             brackets.push_back('(');
             index.push_back(i);
         }
-        if(HighLine(i)>HighLine(i-1))//上升处，i-1为孤立区间的末尾
+
+        if(validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
         {
             if(S.empty())LOffset++;
             else
@@ -321,6 +336,7 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
             brackets.push_back(')');
             index.push_back(i-1);
         }
+
     }
     ROffset+=1+S.size();
 
@@ -344,24 +360,48 @@ inline bool HeightLine::isContinious()
 {
     return (HighLine.segment(1,Size-2).array()-HighLine.segment(0,Size-2).array()==0).all();
 }
-
+inline int HeightLine::validHigh(int index)
+{
+    if(isWater(index))return HighLine(index)-1;
+    else return HighLine(index);
+}
 VectorXi HeightLine::DepthLine()
 {
-    VectorXi Depth=HighLine.segment(1,Size-1).array()-HighLine.segment(0,Size-1).array()+1;
-    for(int i=0;i<Size;i++)
+    VectorXi Depth=HighLine.segment(1,Size-1).array()*0;
+    for(int i=0;i<Size-1;i++)
     {
-        switch (HighLine(i)-LowLine(i)) {
-        case 0:
-            break;
-        case 0+1:
-            Depth(i)=0;
-            break;
-        case 5+1:
-            Depth(i)=1;
-            break;
-        case 10+1:
-            Depth(i)=2;
-            break;
+        if(isWater(i+1))
+        {
+            switch (HighLine(i+1)-LowLine(i+1)) {
+            case 0+1:
+                Depth(i)=0;
+                break;
+            case 5+1:
+                Depth(i)=1;
+                break;
+            case 10+1:
+                Depth(i)=2;
+                break;
+            }
+        }
+        else
+        {
+
+                if(validHigh(i+1)<validHigh(i))
+                {
+                    Depth(i)=0;
+                    continue;
+                }
+                if(validHigh(i+1)==validHigh(i))
+                {
+                    Depth(i)=1;
+                    continue;
+                }
+                if(validHigh(i+1)>validHigh(i))
+                {
+                    Depth(i)=2;
+                    continue;
+                }
         }
     }
     return Depth;
@@ -421,9 +461,9 @@ void HeightLine::SinkBoundary()
     int gapB=0,gapE=0;
     for(int i=0;i<Size-1;i++)//正向遍历，去除前端浮空
     {
-        if(HighLine(i)-HighLine(i+1)>=2)//右浮空
+        if(validHigh(i)-validHigh(i+1)>=2)//右浮空
         {
-            gapE=HighLine(i)-HighLine(i+1);//表示不连续段的落差
+            gapE=validHigh(i)-validHigh(i+1);//表示不连续段的落差
             HighLine.segment(0,i+1).array()-=min(gapE-1,LowLine.segment(0,i+1).minCoeff());
             LowLine.segment(0,i+1).array()-=min(gapE-1,LowLine.segment(0,i+1).minCoeff());
             break;
@@ -432,9 +472,9 @@ void HeightLine::SinkBoundary()
 
     for(int i=Size-1;i>0;i--)
     {
-        if(HighLine(i)-HighLine(i-1)>=2)//左浮空
+        if(validHigh(i)-validHigh(i-1)>=2)//左浮空
         {
-            gapB=HighLine(i)-HighLine(i-1);
+            gapB=validHigh(i)-validHigh(i-1);
             HighLine.segment(i,Size-i).array()-=min(gapB-1,LowLine.segment(i,Size-i).minCoeff());
             LowLine.segment(i,Size-i).array()-=min(gapB-1,LowLine.segment(i,Size-i).minCoeff());
             break;
@@ -474,15 +514,15 @@ void HeightLine::SinkBoundary()
 
     for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
     {
-        if(HighLine(i)-HighLine(i-1)>=2)//左浮空
+        if(validHigh(i)-validHigh(i-1)>=2)//左浮空
         {FBegin=i;
-            gapB=HighLine(i)-HighLine(i-1);
+            gapB=validHigh(i)-validHigh(i-1);
             isReady=true;
         }
-        if(HighLine(i)-HighLine(i+1)>=2&&isReady)//右浮空
+        if(validHigh(i)-validHigh(i+1)>=2&&isReady)//右浮空
         {
             FEnd=i;
-            gapE=HighLine(i)-HighLine(i+1);
+            gapE=validHigh(i)-validHigh(i+1);
             HighLine.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,LowLine.segment(FBegin,FEnd-FBegin+1).minCoeff());
             LowLine.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,LowLine.segment(FBegin,FEnd-FBegin+1).minCoeff());
             //qDebug("沉降了中间的漂浮段");

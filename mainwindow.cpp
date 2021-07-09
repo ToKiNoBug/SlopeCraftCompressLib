@@ -46,9 +46,9 @@ void MainWindow::on_doCompress_clicked()
     qDebug()<<"压缩后高度"<<Result.HighLine.maxCoeff();
     qDebug()<<"极值压缩率："<<100.0-100.0*Result.HighLine.maxCoeff()/Raw.HighLine.maxCoeff()<<"%";
     qDebug()<<"积分压缩率："<<100.0-100.0*Result.HighLine.sum()/Raw.HighLine.sum()<<"%";
-    auto newDepth=Result.HighLine.segment(1,Result.Size-1).array()-Result.HighLine.segment(0,Result.Size-1).array();
-    auto OldDepth=Raw.HighLine.segment(1,Raw.Size-1).array()-Raw.HighLine.segment(0,Raw.Size-1).array();
-    if((newDepth*OldDepth<0).any())
+    auto newDepth=Result.DepthLine();
+    auto OldDepth=Raw.DepthLine();
+    if((newDepth.array()!=OldDepth.array()).any())
         qDebug("旧Depth与新Depth不同");
     else
         qDebug("压缩后Depth不变");

@@ -24,7 +24,7 @@ public:
     //VectorXi LowLine();
     VectorXi DepthLine();
     bool isWater(int);
-
+    int validHigh(int);
     int Size;//totalSize
     VectorXi HighLine;//Height refers to LowLine
     VectorXi LowLine;
