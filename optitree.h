@@ -18,10 +18,17 @@ class Node;
 class HeightLine
 {
 public:
-    HeightLine(int _size=129,char method='Z');//Z->zeros,R->Random
-    HeightLine(const VectorXi&);
+    HeightLine(int _size=129,char method='Z',int Low=0,int High=0);//Z->zeros,R->Random
+    HeightLine(const VectorXi&HighL,const VectorXi&LowL);
+    //VectorXi HighLine();
+    //VectorXi LowLine();
+    VectorXi DepthLine();
+    bool isWater(int);
+
     int Size;//totalSize
-    VectorXi Height;
+    VectorXi HighLine;//Height refers to LowLine
+    VectorXi LowLine;
+
     QImage toQImage();
     void toBrackets(list<short>&index,list<char>&brackets);
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
@@ -30,6 +37,7 @@ public:
     //void SinkMonotonous();
     void SinkBoundary();
     //void SinkInner();
+    friend class OptiTree;
 };
 
 class Node//二叉链，与二叉树没有本质区别
@@ -62,7 +70,8 @@ public:
     OptiTree();
     ~OptiTree();//析构函数，删除所有节点
     void ShowTree();
-    void NaturalOpti(VectorXi&);
+    void NaturalOpti(VectorXi&,VectorXi&);
+    void NaturalOpti(HeightLine&);
 private:
     Node *Current();
     void goUp();

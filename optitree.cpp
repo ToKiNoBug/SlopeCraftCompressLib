@@ -175,22 +175,23 @@ inline bool OptiTree::isRoot()
     return Current()==Root;
 }
 
-HeightLine::HeightLine(int _size,char method)
+HeightLine::HeightLine(int _size,char method,int Low,int High)
 {
     if (_size>0)Size=_size;
     else
         return;
-    Height.resize(Size);
+    HighLine.setZero(Size);
+    LowLine.setZero(Size);
+    VectorXi Offset;
+    Offset.setZero(Size);
     if(method=='R')
     {
-
 #ifdef HL_Rand_1
-        Height.setRandom();
-        Height.array()-=Height.minCoeff();
-        Height-=3*(Height/3);
-        Height.array()-=1;
+        HighLine.setRandom();
+        HighLine.array()-=HighLine.minCoeff();
+        HighLine-=3*(HighLine/3);
+        HighLine.array()-=1;
 #else
-        Height.setZero();
         static bool isFirst=true;
         if(isFirst)
         {
@@ -202,40 +203,98 @@ HeightLine::HeightLine(int _size,char method)
         {
             x=4.0*x*(1.0-x);
             if(x>HighThreshold)
-                Height(i)=1;
+                HighLine(i)=1;
             if(x<LowThreshold)
-                Height(i)=-1;
+                HighLine(i)=-1;
         }
 
 
         if(rand()%2)
-            Height*=-1;
+            HighLine*=-1;
 #endif
         /*Height=(Height.array()<=0).select(Height,1);
         Height=(Height.array()>=0).select(Height,-1);*/
         for(int i=1;i<Size;i++)
-            Height(i)+=Height(i-1);
-        Height.array()-=Height.minCoeff();
-    }
-    else
-        Height.setZero();
+        {
 
+            if(rand()%5==0){
+                switch (rand()%3)
+                {
+                case 0:
+                    Offset(i)=1;
+                    break;
+                case 1:
+                    Offset(i)=6;
+                    break;
+                case 2:
+                    Offset(i)=11;
+                    break;
+                }
+                if(Offset(i-1)>0)
+                    HighLine(i)=HighLine(i-1);
+                else
+                    HighLine(i)=HighLine(i-1)+1;
+            }
+            else
+            {
+                if(Offset(i-1)>0)
+                HighLine(i)+=HighLine(i-1)-1;
+                else
+                    HighLine(i)+=HighLine(i-1);
+            }
+        }
+        LowLine=HighLine-Offset;
+        HighLine.array()-=LowLine.minCoeff();
+        LowLine.array()-=LowLine.minCoeff();
+
+    }
+
+    if(method=='L')
+    {
+        HighLine.setLinSpaced(Low,High);
+        LowLine=HighLine;
+        return;
+    }
+
+    //if(method=='Z')
+
+
+    HighLine.array()-=LowLine.minCoeff();
+    LowLine.array()-=LowLine.minCoeff();
     //cout<<Height.transpose()<<endl;
 }
 
-HeightLine::HeightLine(const VectorXi&parent)
+HeightLine::HeightLine(const VectorXi&HighL,const VectorXi&LowL)
 {
-    Height=parent;Size=Height.size();
+    HighLine=HighL;
+    LowLine=LowL;
+    Size=HighLine.size();
 }
+
+inline bool HeightLine::isWater(int index)
+{
+    return HighLine(index)-LowLine(index);//0->普通方块，>=1 -> 水柱
+}//水柱罩顶玻璃计入最高，但托底玻璃不计入
 
 QImage HeightLine::toQImage()
 {
-    QImage img(Size,max(Height.maxCoeff()+1,min(Size/5,100)),QImage::Format_ARGB32);
-    QRgb isT=qRgb(0,0,0),isF=qRgb(255,255,255);
+    int H=HighLine.maxCoeff()-LowLine.minCoeff()+1;
+    QImage img(Size,max(H,min(Size/5,100)),QImage::Format_ARGB32);
+    QRgb isT=qRgb(0,0,0),isF=qRgb(255,255,255),Water=qRgb(0,64,255),grey=qRgb(192,192,192);
     img.fill(isF);
 
     for(int i=0;i<Size;i++)
-        img.setPixelColor(i,img.height()-1-Height(i),isT);
+    {
+        img.setPixelColor(i,img.height()-1-HighLine(i),isT);
+        if(isWater(i))
+        {
+            img.setPixelColor(i,img.height()-1-HighLine(i),grey);
+            for(int y=LowLine(i);y<HighLine(i);y++)
+                img.setPixelColor(i,img.height()-1-y,Water);
+            if(LowLine(i)>=1)
+                img.setPixelColor(i,img.height()-1-(LowLine(i)-1),grey);
+        }
+    }
     return img;
 }
 
@@ -248,13 +307,13 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
     stack<char>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
     for(int i=1;i<Size;i++)
     {
-        if(Height(i)<Height(i-1))//下降处，是孤立区间的起始
+        if(HighLine(i)<HighLine(i-1))//下降处，是孤立区间的起始
         {
             S.push('F');
             brackets.push_back('(');
             index.push_back(i);
         }
-        if(Height(i)>Height(i-1))//上升处，i-1为孤立区间的末尾
+        if(HighLine(i)>HighLine(i-1))//上升处，i-1为孤立区间的末尾
         {
             if(S.empty())LOffset++;
             else
@@ -281,9 +340,31 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
 
 }
 
-bool HeightLine::isContinious()
+inline bool HeightLine::isContinious()
 {
-    return (Height.segment(1,Size-2).array()-Height.segment(0,Size-2).array()==0).all();
+    return (HighLine.segment(1,Size-2).array()-HighLine.segment(0,Size-2).array()==0).all();
+}
+
+VectorXi HeightLine::DepthLine()
+{
+    VectorXi Depth=HighLine.segment(1,Size-1).array()-HighLine.segment(0,Size-1).array()+1;
+    for(int i=0;i<Size;i++)
+    {
+        switch (HighLine(i)-LowLine(i)) {
+        case 0:
+            break;
+        case 0+1:
+            Depth(i)=0;
+            break;
+        case 5+1:
+            Depth(i)=1;
+            break;
+        case 10+1:
+            Depth(i)=2;
+            break;
+        }
+    }
+    return Depth;
 }
 
 /*
@@ -328,7 +409,8 @@ inline void HeightLine::Sink(Node*rg)
 {
     if(rg->isComplete())
     {
-        Height.segment(rg->Begin,rg->Length()).array()-=Height.segment(rg->Begin,rg->Length()).minCoeff();
+        HighLine.segment(rg->Begin,rg->Length()).array()-=LowLine.segment(rg->Begin,rg->Length()).minCoeff();
+        LowLine.segment(rg->Begin,rg->Length()).array()-=LowLine.segment(rg->Begin,rg->Length()).minCoeff();
         //qDebug()<<"沉降了["<<rg->Begin<<','<<rg->End<<']';
     }
 }
@@ -339,20 +421,22 @@ void HeightLine::SinkBoundary()
     int gapB=0,gapE=0;
     for(int i=0;i<Size-1;i++)//正向遍历，去除前端浮空
     {
-        if(Height(i)-Height(i+1)>=2)//右浮空
+        if(HighLine(i)-HighLine(i+1)>=2)//右浮空
         {
-            gapE=Height(i)-Height(i+1);//表示不连续段的落差
-            Height.segment(0,i+1).array()-=min(gapE-1,Height.segment(0,i+1).minCoeff());
+            gapE=HighLine(i)-HighLine(i+1);//表示不连续段的落差
+            HighLine.segment(0,i+1).array()-=min(gapE-1,LowLine.segment(0,i+1).minCoeff());
+            LowLine.segment(0,i+1).array()-=min(gapE-1,LowLine.segment(0,i+1).minCoeff());
             break;
         }
     }
 
     for(int i=Size-1;i>0;i--)
     {
-        if(Height(i)-Height(i-1)>=2)//左浮空
+        if(HighLine(i)-HighLine(i-1)>=2)//左浮空
         {
-            gapB=Height(i)-Height(i-1);
-            Height.segment(i,Size-i).array()-=min(gapB-1,Height.segment(i,Size-i).minCoeff());
+            gapB=HighLine(i)-HighLine(i-1);
+            HighLine.segment(i,Size-i).array()-=min(gapB-1,LowLine.segment(i,Size-i).minCoeff());
+            LowLine.segment(i,Size-i).array()-=min(gapB-1,LowLine.segment(i,Size-i).minCoeff());
             break;
         }
     }
@@ -390,16 +474,17 @@ void HeightLine::SinkBoundary()
 
     for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
     {
-        if(Height(i)-Height(i-1)>=2)//左浮空
+        if(HighLine(i)-HighLine(i-1)>=2)//左浮空
         {FBegin=i;
-            gapB=Height(i)-Height(i-1);
+            gapB=HighLine(i)-HighLine(i-1);
             isReady=true;
         }
-        if(Height(i)-Height(i+1)>=2&&isReady)//右浮空
+        if(HighLine(i)-HighLine(i+1)>=2&&isReady)//右浮空
         {
             FEnd=i;
-            gapE=Height(i)-Height(i+1);
-            Height.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,Height.segment(FBegin,FEnd-FBegin+1).minCoeff());
+            gapE=HighLine(i)-HighLine(i+1);
+            HighLine.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,LowLine.segment(FBegin,FEnd-FBegin+1).minCoeff());
+            LowLine.segment(FBegin,FEnd-FBegin+1).array()-=min(min(gapB,gapE)-1,LowLine.segment(FBegin,FEnd-FBegin+1).minCoeff());
             //qDebug("沉降了中间的漂浮段");
             isReady=false;
         }
@@ -443,16 +528,12 @@ void HeightLine::SinkBoundary()
 }*/
 
 
-void OptiTree::NaturalOpti(VectorXi &Raw)
+void OptiTree::NaturalOpti(VectorXi &HighL,VectorXi&LowL)
 {
-
-    HeightLine HL(Raw);
-    BuildTree(HL);
-    gotoRoot();
-    Compress(HL);
-    HL.SinkBoundary();
-    HL.SinkBoundary();
-    Raw=HL.Height;
+    HeightLine HL(HighL,LowL);
+    NaturalOpti(HL);
+    LowL=HL.LowLine;
+    HighL=HL.HighLine;
 }
 
 
@@ -565,4 +646,13 @@ void OptiTree::ShowTree()
     cout<<endl;
     Root->disp();
     cout<<endl;
+}
+
+void OptiTree::NaturalOpti(HeightLine& HL)
+{
+    BuildTree(HL);
+    gotoRoot();
+    Compress(HL);
+    HL.SinkBoundary();
+    HL.SinkBoundary();
 }
