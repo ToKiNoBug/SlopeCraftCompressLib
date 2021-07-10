@@ -392,9 +392,10 @@ void HeightLine::toBrackets(list<Pair> &List)
 ScanBoth=(ScanBoth.array()>=0).select(ScanBoth,0);
 ScanLeft=(ScanLeft.array()>=0).select(ScanLeft,0);
 ScanRight=(ScanRight.array()>=0).select(ScanRight,0);
+/*
 cout<<"ScanBoth="<<endl<<ScanBoth.transpose()<<endl;
 cout<<"ScanLeft="<<endl<<ScanLeft.transpose()<<endl;
-cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;
+cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
     isReady=false;
     for(int i=1;i<Size-1;i++)
     {
@@ -711,7 +712,7 @@ void OptiTree::BuildTree(HeightLine &HL)
         if(iter->equalto(')'))
         {//右括号
             //cout<<')';
-            qDebug("rue");
+            //qDebug("rue");
             if(Current()->isComplete())
             {//如果当前节点已完成，则向上，写入End
                 //qDebug()<<"当前度数"<<Current()->Degree<<"，即将goUp";
@@ -726,7 +727,7 @@ void OptiTree::BuildTree(HeightLine &HL)
                     return;
                 }
                 Current()->End=iter->index;
-                qDebug("rua!");
+                //qDebug("rua!");
             }
         }
         iter++;

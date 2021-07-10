@@ -22,7 +22,7 @@ void MainWindow::on_GenerateAndShow_clicked()
 {
     Pair u;
     cout<<u.equalto('(')<<u.equalto(')')<<endl;
-    Raw=HeightLine(64+1,'R');
+    Raw=HeightLine(128+1,'R');
     //QPixmap pxm=;
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(QPixmap::fromImage(Raw.toQImage().scaled(ui->ShowHeightLine->width(),ui->ShowHeightLine->height())));
