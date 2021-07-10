@@ -375,7 +375,7 @@ void HeightLine::toBrackets(list<Pair> &List)
     List.push_back(Pair('(',0));
     int LOffset=0,ROffset=0;
     stack<short>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
-    short lastLeftIndex=0;
+
     //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
     for(int i=1;i<Size;i++)
     {
