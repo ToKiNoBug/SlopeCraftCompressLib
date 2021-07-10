@@ -4,12 +4,16 @@
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
 
+Vector3i HeightLine::Both(-1,2,-1);
+Vector3i HeightLine::Left(-1,1,0);
+Vector3i HeightLine::Right(0,1,-1);
+
 Pair::Pair(char _type,short _index)
 {
     type=_type;index=_index;
 }
 
-inline bool Pair::operator==(char _type)
+bool Pair::equalto(char _type)
 {
     return type==_type;
 }
@@ -325,18 +329,6 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
     //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
     for(int i=1;i<Size;i++)
     {
-        /*if(isWater(i))
-        {//遇到水柱，则先画一个右括号，再画一个左括号
-            if(S.empty())LOffset++;
-            else
-                S.pop();
-            brackets.push_back(')');
-            index.push_back(i-1);
-            S.push('F');
-            brackets.push_back('(');
-            index.push_back(i);
-            continue;
-        }*/
         if(isWater(i)||validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
         {
             if(S.empty())LOffset++;
@@ -378,34 +370,65 @@ void HeightLine::toBrackets(list<Pair> &List)
     if(Size<=0)return;
     List.clear();
     queue<Region>Pure;
+    queue<Region> disPure;//极大值区间
     Region Temp;
     bool isReady=false;
-    for(int i=1;i<Size;i++)//寻找极大值区间
+    VectorXi VHL=ValidHighLine();
+    VectorXi ScanBoth=VHL,ScanLeft=VHL,ScanRight=VHL;
+    ScanBoth.setZero();ScanLeft.setZero();ScanRight.setZero();
+    for(int i=1;i<Size-1;i++)//分别用三个算子处理
     {
-        if(isReady||validHigh(i)>validHigh(i-1))
-            isReady=false;
-        if(!isReady)
+        if(isWater(i))
         {
-            if(i==1||isWater(i)||validHigh(i)>validHigh(i-1))
-            {
-                Temp.Begin=(i==1?0:i);
-                isReady=true;
-            }
+            ScanBoth(i)=2;
+            ScanLeft(i)=1;
+            ScanRight(i)=1;
+            continue;
         }
-        if(isReady)
+        ScanBoth(i)=(VHL.segment(i-1,3).array()*Both.array()).sum();
+        ScanLeft(i)=(VHL.segment(i-1,3).array()*Left.array()).sum();
+        ScanRight(i)=(VHL.segment(i-1,3).array()*Right.array()).sum();
+    }
+ScanBoth=(ScanBoth.array()>=0).select(ScanBoth,0);
+ScanLeft=(ScanLeft.array()>=0).select(ScanLeft,0);
+ScanRight=(ScanRight.array()>=0).select(ScanRight,0);
+cout<<"ScanBoth="<<endl<<ScanBoth.transpose()<<endl;
+cout<<"ScanLeft="<<endl<<ScanLeft.transpose()<<endl;
+cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;
+    isReady=false;
+    for(int i=1;i<Size-1;i++)
+    {
+        if(!isReady&&ScanBoth(i)&&ScanLeft(i))
         {
-            if(i==Size-1||validHigh(i-1)>validHigh(i)||isWater(i))
-            {
-                Temp.Begin=(i==Size-1?i:i-1);
-                Pure.push(Temp);
-                isReady=false;
-            }
+            isReady=true;
+            Temp.Begin=i;
+        }
+        if(isReady&&ScanBoth(i)&&ScanRight(i))
+        {
+            Temp.End=i;
+            disPure.push(Temp);
+            Temp.Begin=-1;
+            Temp.End=-1;
+            isReady=false;
         }
     }
+    Temp.Begin=0;
+    Temp.End=Size-1;
+    while(!disPure.empty())
+    {
+        Temp.End=disPure.front().Begin-1;
+        Pure.push(Temp);
+        Temp.Begin=disPure.front().End+1;
+        disPure.pop();
+        if(Temp.Begin>=Size-1)Temp.Begin=Size-1;
+        Temp.End=Size-1;
+    }
+    Pure.push(Temp);
 
     while(!Pure.empty())
     {
         DealRegion(Pure.front(),List);
+        cout<<'['<<Pure.front().Begin<<','<<Pure.front().End<<']'<<"->";
         Pure.pop();
     }
 
@@ -469,6 +492,11 @@ VectorXi HeightLine::DepthLine()
         }
     }
     return Depth;
+}
+
+inline VectorXi HeightLine::ValidHighLine()
+{
+    return ((HighLine-LowLine).array()==0).select(HighLine,HighLine.array()-1);
 }
 
 /*
@@ -657,7 +685,7 @@ void OptiTree::BuildTree(HeightLine &HL)
 
     for(;iter!=Index.end();)
     {
-        if(*iter=='(')
+        if(iter->equalto('('))
         {//左括号
             //cout<<'(';
             if(Current()->isComplete())
@@ -680,9 +708,10 @@ void OptiTree::BuildTree(HeightLine &HL)
             }
         }
 
-        if(*iter==')')
+        if(iter->equalto(')'))
         {//右括号
             //cout<<')';
+            qDebug("rue");
             if(Current()->isComplete())
             {//如果当前节点已完成，则向上，写入End
                 //qDebug()<<"当前度数"<<Current()->Degree<<"，即将goUp";
@@ -697,13 +726,14 @@ void OptiTree::BuildTree(HeightLine &HL)
                     return;
                 }
                 Current()->End=iter->index;
+                qDebug("rua!");
             }
         }
-        iter++;iter++;
+        iter++;
     }
     cout<<endl;
     qDebug("优化树构建完毕");
-
+    ShowTree();
 }
 
 void OptiTree::Compress(HeightLine &HL)
@@ -760,7 +790,7 @@ void OptiTree::NaturalOpti(HeightLine& HL)
     gotoRoot();
     Compress(HL);
     HL.SinkBoundary();
-    HL.SinkBoundary();
+    //HL.SinkBoundary();
 }
 
 void disp(const list<Pair>&L)
@@ -768,7 +798,7 @@ void disp(const list<Pair>&L)
     if(L.empty())return;
     cout<<endl;
     for(auto i=L.cbegin();i!=L.cend();i++)
-        cout<<"   "<<i->type;
+        cout<<" "<<i->type;
     cout<<endl;
     for(auto i=L.cbegin();i!=L.cend();i++)
         cout<<" "<<i->index;

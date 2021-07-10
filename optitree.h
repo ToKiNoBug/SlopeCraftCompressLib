@@ -20,9 +20,11 @@ public:
     Pair(char='(',short=0);
     char type;
     short index;
-    bool operator==(char);
+    bool equalto(char);
+    //bool operator==(char);
     ~Pair();
 };
+
 
 struct Region
 {
@@ -46,10 +48,15 @@ public:
     VectorXi HighLine;//Height refers to LowLine
     VectorXi LowLine;
 
+    static Vector3i Both;
+    static Vector3i Left;
+    static Vector3i Right;
+
     QImage toQImage();
     void toBrackets(list<short>&index,list<char>&brackets);
     void toBrackets(list<Pair>&);
     void DealRegion(Region,list<Pair>&);
+    VectorXi ValidHighLine();
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
     bool isContinious();
     void Sink(Node*);

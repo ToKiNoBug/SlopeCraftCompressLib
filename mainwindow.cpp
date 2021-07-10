@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "heightline.h"
+
 #include "optitree.h"
 #include <iomanip>
 using namespace std;
@@ -20,6 +20,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_GenerateAndShow_clicked()
 {
+    Pair u;
+    cout<<u.equalto('(')<<u.equalto(')')<<endl;
     Raw=HeightLine(64+1,'R');
     //QPixmap pxm=;
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
