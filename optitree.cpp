@@ -14,6 +14,11 @@ inline bool Pair::operator==(char _type)
     return type==_type;
 }
 
+Pair::~Pair()
+{
+    return;
+}
+
 Node::Node(short beg,short end)
 {
     Begin=beg;
@@ -372,43 +377,29 @@ void HeightLine::toBrackets(list<Pair> &List)
 {
     if(Size<=0)return;
     List.clear();
-    List.push_back(Pair('(',0));
-    int LOffset=0,ROffset=0;
-    stack<short>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
-
-    //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
-    for(int i=1;i<Size;i++)
+    queue<Region>Pure;
+    Region Temp;
+    bool isReady=false;
+    for(int i=1;i<Size;i++)//寻找极大值区间
     {
-
-        if(isWater(i)||validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
+        if(!isReady)
         {
-            if(S.empty())LOffset++;
-            else
-                S.pop();
-            List.push_back(Pair(')',i-1));
+            if(isWater(i)||validHigh(i-1)<validHigh(i))//找到极大值区间的起点
+            {
+                isReady=true;
+            }
         }
-        if(isWater(i)||validHigh(i)<validHigh(i-1))//下降处，是孤立区间的起始
-        {
-            S.push('F');
-            List.push_back(Pair('(',i));
-        }
-
-
-
     }
-    ROffset+=1+S.size();
 
-    //qDebug()<<"LOffset="<<LOffset<<";  ROffset="<<ROffset;
-    //cout<<"Raw="<<brackets<<endl;
 
-    for(;LOffset>0;LOffset--)
-    {
-        List.push_front(Pair('(',0));
-    }
-    for(;ROffset>0;ROffset--)
-    {
-        List.push_back(Pair(')',Size-1));
-    }
+    disp(List);
+}
+
+inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
+{
+    if(PR.Begin<0||PR.End<PR.Begin)return;
+    List.push_back(Pair('(',PR.Begin));
+    List.push_back(Pair(')',PR.End));
 }
 
 inline bool HeightLine::isContinious()

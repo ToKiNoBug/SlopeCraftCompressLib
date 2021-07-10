@@ -24,6 +24,13 @@ public:
     ~Pair();
 };
 
+struct Region
+{
+    short Begin;
+    short End;
+};//Region是两端均为右端点/水/极大值区间的区间，其内不含极大值
+
+
 class Node;
 class HeightLine
 {
@@ -42,6 +49,7 @@ public:
     QImage toQImage();
     void toBrackets(list<short>&index,list<char>&brackets);
     void toBrackets(list<Pair>&);
+    void DealRegion(Region,list<Pair>&);
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
     bool isContinious();
     void Sink(Node*);
