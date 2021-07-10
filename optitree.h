@@ -14,6 +14,15 @@
 //#include "heightline.cpp"
 using namespace std;
 using namespace Eigen;
+class Pair
+{
+public:
+    Pair(char='(',short=0);
+    short index;
+    char type;
+    ~Pair();
+};
+
 class Node;
 class HeightLine
 {
@@ -31,6 +40,7 @@ public:
 
     QImage toQImage();
     void toBrackets(list<short>&index,list<char>&brackets);
+    void toPairBrackets(list<Pair>&);
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
     bool isContinious();
     void Sink(Node*);
@@ -39,6 +49,8 @@ public:
     //void SinkInner();
     friend class OptiTree;
 };
+
+void disp(const list<Pair>&);
 
 class Node//二叉链，与二叉树没有本质区别
 {

@@ -3,6 +3,13 @@
 
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
+
+Pair::Pair(char _type,short _index)
+{
+    type=_type;index=_index;
+}
+
+
 Node::Node(short beg,short end)
 {
     Begin=beg;
@@ -217,7 +224,7 @@ HeightLine::HeightLine(int _size,char method,int Low,int High)
         for(int i=1;i<Size;i++)
         {
 
-            if(rand()%5==0){
+            if(rand()%5==6){
                 switch (rand()%3)
                 {
                 case 0:
@@ -309,7 +316,7 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
     //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
     for(int i=1;i<Size;i++)
     {
-        if(isWater(i))
+        /*if(isWater(i))
         {//遇到水柱，则先画一个右括号，再画一个左括号
             if(S.empty())LOffset++;
             else
@@ -320,15 +327,8 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
             brackets.push_back('(');
             index.push_back(i);
             continue;
-        }
-        if(validHigh(i)<validHigh(i-1))//下降处，是孤立区间的起始
-        {
-            S.push('F');
-            brackets.push_back('(');
-            index.push_back(i);
-        }
-
-        if(validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
+        }*/
+        if(isWater(i)||validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
         {
             if(S.empty())LOffset++;
             else
@@ -336,6 +336,14 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
             brackets.push_back(')');
             index.push_back(i-1);
         }
+        if(isWater(i)||validHigh(i)<validHigh(i-1))//下降处，是孤立区间的起始
+        {
+            S.push('F');
+            brackets.push_back('(');
+            index.push_back(i);
+        }
+
+
 
     }
     ROffset+=1+S.size();
