@@ -9,6 +9,10 @@ Pair::Pair(char _type,short _index)
     type=_type;index=_index;
 }
 
+inline bool Pair::operator==(char _type)
+{
+    return type==_type;
+}
 
 Node::Node(short beg,short end)
 {
@@ -364,6 +368,49 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
 
 }
 
+void HeightLine::toBrackets(list<Pair> &List)
+{
+    if(Size<=0)return;
+    List.clear();
+    List.push_back(Pair('(',0));
+    int LOffset=0,ROffset=0;
+    stack<short>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
+    short lastLeftIndex=0;
+    //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
+    for(int i=1;i<Size;i++)
+    {
+
+        if(isWater(i)||validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
+        {
+            if(S.empty())LOffset++;
+            else
+                S.pop();
+            List.push_back(Pair(')',i-1));
+        }
+        if(isWater(i)||validHigh(i)<validHigh(i-1))//下降处，是孤立区间的起始
+        {
+            S.push('F');
+            List.push_back(Pair('(',i));
+        }
+
+
+
+    }
+    ROffset+=1+S.size();
+
+    //qDebug()<<"LOffset="<<LOffset<<";  ROffset="<<ROffset;
+    //cout<<"Raw="<<brackets<<endl;
+
+    for(;LOffset>0;LOffset--)
+    {
+        List.push_front(Pair('(',0));
+    }
+    for(;ROffset>0;ROffset--)
+    {
+        List.push_back(Pair(')',Size-1));
+    }
+}
+
 inline bool HeightLine::isContinious()
 {
     return (HighLine.segment(1,Size-2).array()-HighLine.segment(0,Size-2).array()==0).all();
@@ -590,46 +637,48 @@ void OptiTree::BuildTree(HeightLine &HL)
     FreezeTree();
     gotoRoot();
     preventEmpty();
-    list<short> Index;list<char> Brackets;
-    HL.toBrackets(Index,Brackets);
+    //list<short> Index;list<char> Brackets;
+    list<Pair> Index;
+    //HL.toBrackets(Index,Brackets);
+    HL.toBrackets(Index);
     //cout<<Brackets<<endl;
-    auto iI=Index.begin();
-    auto iB=Brackets.begin();
+    auto iter=Index.begin();
+    //auto iter=Brackets.begin();
     qDebug("开始BuildTree");
 
-    for(;iI!=Index.end();)
+    for(;iter!=Index.end();)
     {
-        if(*iB=='(')
+        if(*iter=='(')
         {//左括号
             //cout<<'(';
             if(Current()->isComplete())
             {//如果当前节点已完成，创建侧链并写入Begin
-                Current()->creatSib()->Begin=*iI;
+                Current()->creatSib()->Begin=iter->index;
                 goNextSib();
-                //iI++;iB++;continue;
+                //iter++;iter++;continue;
             }
             else
             {//如果当前节点Begin完成但End未完成，则创建子树，写入Begin
                 if(Current()->Begin>=0)
                 {
-                    Current()->creatChild()->Begin=*iI;
+                    Current()->creatChild()->Begin=iter->index;
                     goDown();
                 }
                 else
                 {//否则写入Begin
-                    Current()->Begin=*iI;
+                    Current()->Begin=iter->index;
                 }
             }
         }
 
-        if(*iB==')')
+        if(*iter==')')
         {//右括号
             //cout<<')';
             if(Current()->isComplete())
             {//如果当前节点已完成，则向上，写入End
                 //qDebug()<<"当前度数"<<Current()->Degree<<"，即将goUp";
                 goUp();
-                Current()->End=*iI;
+                Current()->End=iter->index;
             }
             else
             {//如果当前节点未完成，则Begin必然已经完成（否则报错），写入End
@@ -638,10 +687,10 @@ void OptiTree::BuildTree(HeightLine &HL)
                     qDebug("出现错误：不成对的括号：过多的右括号");
                     return;
                 }
-                Current()->End=*iI;
+                Current()->End=iter->index;
             }
         }
-        iI++;iB++;
+        iter++;iter++;
     }
     cout<<endl;
     qDebug("优化树构建完毕");
@@ -703,4 +752,17 @@ void OptiTree::NaturalOpti(HeightLine& HL)
     Compress(HL);
     HL.SinkBoundary();
     HL.SinkBoundary();
+}
+
+void disp(const list<Pair>&L)
+{
+    if(L.empty())return;
+    cout<<endl;
+    for(auto i=L.cbegin();i!=L.cend();i++)
+        cout<<"   "<<i->type;
+    cout<<endl;
+    for(auto i=L.cbegin();i!=L.cend();i++)
+        cout<<" "<<i->index;
+    cout<<endl;
+    cout<<endl;
 }

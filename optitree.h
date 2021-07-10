@@ -18,8 +18,9 @@ class Pair
 {
 public:
     Pair(char='(',short=0);
-    short index;
     char type;
+    short index;
+    bool operator==(char);
     ~Pair();
 };
 
@@ -40,7 +41,7 @@ public:
 
     QImage toQImage();
     void toBrackets(list<short>&index,list<char>&brackets);
-    void toPairBrackets(list<Pair>&);
+    void toBrackets(list<Pair>&);
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
     bool isContinious();
     void Sink(Node*);
