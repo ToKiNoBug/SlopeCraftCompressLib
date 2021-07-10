@@ -321,7 +321,7 @@ void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
     brackets.push_back('(');index.push_back(0);
     int LOffset=0,ROffset=0;
     stack<short>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
-    short lastLeftIndex=0;
+
     //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
     for(int i=1;i<Size;i++)
     {
@@ -382,13 +382,31 @@ void HeightLine::toBrackets(list<Pair> &List)
     bool isReady=false;
     for(int i=1;i<Size;i++)//寻找极大值区间
     {
+        if(isReady||validHigh(i)>validHigh(i-1))
+            isReady=false;
         if(!isReady)
         {
-            if(isWater(i)||validHigh(i-1)<validHigh(i))//找到极大值区间的起点
+            if(i==1||isWater(i)||validHigh(i)>validHigh(i-1))
             {
+                Temp.Begin=(i==1?0:i);
                 isReady=true;
             }
         }
+        if(isReady)
+        {
+            if(i==Size-1||validHigh(i-1)>validHigh(i)||isWater(i))
+            {
+                Temp.Begin=(i==Size-1?i:i-1);
+                Pure.push(Temp);
+                isReady=false;
+            }
+        }
+    }
+
+    while(!Pure.empty())
+    {
+        DealRegion(Pure.front(),List);
+        Pure.pop();
     }
 
 
