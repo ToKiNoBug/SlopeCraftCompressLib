@@ -90,6 +90,11 @@ private:
     bool haveSib();//指有无激活的平级树
     Node* creatChild();
     Node* creatSib();
+    Node* insertChild(Node*newChild);
+    Node* insertSib(Node*newSib);
+    static Node* moveChild(Node*oldParent,Node*newParent);
+    static Node* moveSib(Node*oldBrother,Node*newBrother);
+    void refreshDegree();
 };
 
 class OptiTree

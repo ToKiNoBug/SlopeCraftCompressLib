@@ -103,6 +103,84 @@ void Node::Freeze()
     if(haveSib())Sib->Freeze();
 }
 
+void Node::refreshDegree()
+{
+    if(haveChild())
+    {
+        Child->Degree=Degree+1;
+        Child->refreshDegree();
+    }
+    if(haveSib())
+    {
+        Sib->Degree=Degree;
+        Sib->refreshDegree();
+    }
+}
+
+Node* Node::insertChild(Node *newChild)
+//在自己与newChild之间插入新的子节点
+{
+    /*if(haveChild())
+    {
+        Node* oldChild=Child;
+        Child=newChild;
+        Child->Child=oldChild;
+        Child->Sib=oldChild->Sib;
+        oldChild->Sib=NULL;
+    }
+    else
+    {
+        Child=newChild;
+    }*/
+    Node *oldChild=Child;
+    Child=newChild;
+    Child->Child=oldChild;
+    Child->isAble=true;
+    refreshDegree();
+    return Child;
+}
+
+Node* Node::insertSib(Node *newSib)
+//在自己与Sib之间插入新的侧链，并将旧Sib的侧链嫁接到新的Sib上
+{
+    Node*oldSib=Sib;
+    Sib=newSib;
+    Sib->Sib=oldSib;
+    Sib->isAble=true;
+    refreshDegree();
+    return Sib;
+}
+
+Node* Node::moveChild(Node *oldParent, Node *newParent)
+{
+    if(newParent->haveChild())
+    {
+        qDebug()<<"moveChild错误：newParent已有激活的Child";
+        return NULL;
+    }
+    Node*Temp=oldParent->Child;
+    if(newParent->Child!=NULL)delete newParent->Child;
+    oldParent->Child=NULL;
+    newParent->Child=Temp;
+    newParent->refreshDegree();
+    return Temp;
+}
+
+Node* Node::moveSib(Node *oldBrother, Node *newBrother)
+{
+    if(newBrother->haveSib())
+    {
+        qDebug()<<"moveSib错误：newBrother已有激活的Sib";
+        return NULL;
+    }
+    Node* Temp=oldBrother->Sib;
+    if(newBrother->Child!=NULL)delete newBrother->Child;
+    oldBrother->Sib=NULL;
+    newBrother->Sib=Temp;
+    newBrother->refreshDegree();
+    return Temp;
+}
+
 
 OptiTree::OptiTree()
 {
@@ -237,7 +315,7 @@ HeightLine::HeightLine(int _size,char method,int Low,int High)
         for(int i=1;i<Size;i++)
         {
 
-            if(rand()%5==6){
+            if(rand()%5==0){
                 switch (rand()%3)
                 {
                 case 0:
@@ -380,10 +458,10 @@ void HeightLine::toBrackets(list<Pair> &List)
     {
         if(isWater(i))
         {
-            ScanBoth(i)=2;
+            /*ScanBoth(i)=2;
             ScanLeft(i)=1;
             ScanRight(i)=1;
-            continue;
+            continue;*/
         }
         ScanBoth(i)=(VHL.segment(i-1,3).array()*Both.array()).sum();
         ScanLeft(i)=(VHL.segment(i-1,3).array()*Left.array()).sum();
