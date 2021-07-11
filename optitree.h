@@ -68,6 +68,13 @@ public:
 
 void disp(const list<Pair>&);
 
+bool operator>=(Region,Node*);
+bool operator>=(Node*,Region);
+bool conflictWith(Region,Node*);
+bool conflictWith(Node*,Region);
+bool isRightBeside(Region,Node*);
+bool isRightBeside(Node*,Region);
+
 class Node//二叉链，与二叉树没有本质区别
 {
 public:
@@ -76,7 +83,12 @@ public:
     void disp();
     friend class OptiTree;
     friend class HeightLine;
-private:
+    friend bool operator>=(Region,Node*);
+    friend bool conflictWith(Region,Node*);
+    friend bool operator>=(Node*,Region);
+    friend bool isRightBeside(Region,Node*);
+    friend bool isRightBeside(Node*,Region);
+//private:
     short Begin;
     short End;
     Node *Child;
@@ -89,12 +101,19 @@ private:
     bool haveChild();//指有无激活的子树
     bool haveSib();//指有无激活的平级树
     Node* creatChild();
+    Node*creatChild(short,short);
     Node* creatSib();
+    Node*creatSib(short,short);
     Node* insertChild(Node*newChild);
+    Node* insertChild(Region);
     Node* insertSib(Node*newSib);
+    Node* insertSib(Region);
     static Node* moveChild(Node*oldParent,Node*newParent);
     static Node* moveSib(Node*oldBrother,Node*newBrother);
+    short maxSibEnd();
     void refreshDegree();
+    Node* SetValue(short,short);
+    Node* findRightBesideBrother(Region);
 };
 
 class OptiTree
@@ -105,13 +124,16 @@ public:
     void ShowTree();
     void NaturalOpti(VectorXi&,VectorXi&);
     void NaturalOpti(HeightLine&);
-private:
+    void add(Region);
+//private:
     Node *Current();
     void goUp();
     void goDown();
     void goNextSib();
     void goPrevSib();
     bool isRoot();
+
+
 
     void gotoRoot();
 

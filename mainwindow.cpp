@@ -10,6 +10,18 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    OptiTree testTree;
+    testTree.Root->SetValue(0,63);
+    testTree.Current()->creatChild(0,32)->creatSib(33,63);
+    testTree.goDown();
+    testTree.Current()->creatChild(2,16)->creatSib(17,18)->creatSib(19,20)->creatSib(21,22)->creatSib(31,32);
+
+    testTree.ShowTree();
+
+    testTree.add({23,24});
+    testTree.ShowTree();
+
+
 }
 
 MainWindow::~MainWindow()

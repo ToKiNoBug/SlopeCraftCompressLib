@@ -140,6 +140,11 @@ Node* Node::insertChild(Node *newChild)
     return Child;
 }
 
+inline Node* Node::insertChild(Region newR)
+{
+    return insertChild(new Node(newR.Begin,newR.End));
+}
+
 Node* Node::insertSib(Node *newSib)
 //在自己与Sib之间插入新的侧链，并将旧Sib的侧链嫁接到新的Sib上
 {
@@ -151,6 +156,11 @@ Node* Node::insertSib(Node *newSib)
     return Sib;
 }
 
+inline Node* Node::insertSib(Region newS)
+{
+    return insertSib(new Node(newS.Begin,newS.End));
+}
+
 Node* Node::moveChild(Node *oldParent, Node *newParent)
 {
     if(newParent->haveChild())
@@ -158,12 +168,9 @@ Node* Node::moveChild(Node *oldParent, Node *newParent)
         qDebug()<<"moveChild错误：newParent已有激活的Child";
         return NULL;
     }
-    Node*Temp=oldParent->Child;
-    if(newParent->Child!=NULL)delete newParent->Child;
-    oldParent->Child=NULL;
-    newParent->Child=Temp;
+    swap(oldParent->Child,newParent->Child);
     newParent->refreshDegree();
-    return Temp;
+    return newParent->Child;
 }
 
 Node* Node::moveSib(Node *oldBrother, Node *newBrother)
@@ -173,14 +180,18 @@ Node* Node::moveSib(Node *oldBrother, Node *newBrother)
         qDebug()<<"moveSib错误：newBrother已有激活的Sib";
         return NULL;
     }
-    Node* Temp=oldBrother->Sib;
-    if(newBrother->Child!=NULL)delete newBrother->Child;
-    oldBrother->Sib=NULL;
-    newBrother->Sib=Temp;
+    swap(oldBrother->Child,newBrother->Child);
     newBrother->refreshDegree();
-    return Temp;
+    return newBrother->Child;
 }
 
+short Node::maxSibEnd()
+{
+    if(haveSib())
+        return max(End,Sib->maxSibEnd());
+    else
+        return End;
+}
 
 OptiTree::OptiTree()
 {
@@ -883,4 +894,114 @@ void disp(const list<Pair>&L)
         cout<<" "<<i->index;
     cout<<endl;
     cout<<endl;
+}
+
+inline bool operator>=(Region a,Node*b)
+{
+    return (a.Begin<=b->Begin)&&(a.End>=b->End);
+}
+
+inline bool operator>=(Node*a,Region b)
+{
+    return (a->Begin<=b.Begin)&&(a->End>=b.End);
+}
+
+inline bool conflictWith(Region a,Node*b)
+{
+    if(a>=b||b>=a)return false;
+    return ((a.End-b->Begin)*(a.Begin-b->End)<0);
+}
+
+inline bool conflictWith(Node *a,Region b)
+{
+    return conflictWith(b,a);
+}
+
+inline bool isRightBeside(Region a,Node*b)//指示a在b的左侧成立
+{
+    return (a.End<=b->Begin);
+}
+
+inline bool isRightBeside(Node*a,Region b)
+{
+    return (a->End<=b.Begin);
+}
+
+inline Node* Node::SetValue(short beg, short end)
+{
+    Begin=beg;End=end;
+    return this;
+}
+
+inline Node* Node::creatChild(short beg, short end)
+{
+    return creatChild()->SetValue(beg,end);
+}
+
+inline Node* Node::creatSib(short beg, short end)
+{
+    return creatSib()->SetValue(beg,end);
+}
+
+Node* Node::findRightBesideBrother(Region Reg)
+//返回最远的与Reg右邻的节点的brother
+{
+    //如果haveSib且Sib不在Reg的右侧，则向右继续寻找
+    //如果haveSib且Sib在Reg的右侧，返回this
+    //如果!haveSib，则return this
+    if(!haveSib())return this;
+    if(haveSib()&&isRightBeside(Reg,Sib))return this;
+
+    return Sib->findRightBesideBrother(Reg);
+}
+
+void OptiTree::add(Region newR)
+{
+    gotoRoot();
+    while(true)
+    {
+        if(conflictWith(Current(),newR))
+        {
+            qDebug("newR与当前节点冲突，不可插入");
+            return;
+        }
+        if(Current()>=newR)
+        {
+            if(!Current()->haveChild())
+            {
+                Current()->creatChild()->SetValue(newR.Begin,newR.End);
+                return;
+            }
+            else if(newR>=Current()->Child)
+            {
+                Node::moveSib(Current()->Child->findRightBesideBrother(newR),Current()->insertChild(newR));
+                return;
+            }
+            else
+            {
+                goDown();continue;
+            }
+        }
+
+        if(isRightBeside(newR,Current()))
+        {
+            goPrevSib();
+            continue;
+        }
+
+        if(isRightBeside(Current(),newR))
+        {
+            if(!Current()->haveSib()||isRightBeside(newR,Current()->Sib))
+            {
+                Current()->insertSib(newR);
+                return;
+            }
+            else
+            {
+                goNextSib();
+                continue;
+            }
+        }
+    }
+
 }
