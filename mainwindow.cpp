@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    /*OptiTree testTree;
+    OptiTree testTree;
     testTree.Root->SetValue(0,63);
     testTree.Current()->creatChild(0,32)->creatSib(33,63);
     testTree.goDown();
@@ -18,11 +18,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     testTree.ShowTree();
 
-    testTree.add({23,24});
+    testTree.add({24,25});
+    testTree.ShowTree();
+
+    testTree.add({23,26});
     testTree.ShowTree();
 
     testTree.add({22,33});
-    testTree.ShowTree();*/
+    testTree.ShowTree();
 
 
 }
@@ -69,7 +72,5 @@ void MainWindow::on_doCompress_clicked()
         qDebug("旧Depth与新Depth不同");
     else
         qDebug("压缩后Depth不变");
-    /*Tree.Root->disp();
-    Tree.Root->Freeze();
-    Tree.Root->disp();*/
+
 }

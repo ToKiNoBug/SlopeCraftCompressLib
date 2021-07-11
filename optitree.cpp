@@ -1,10 +1,11 @@
 #include "optitree.h"
 //#define HL_Rand_1
 
-#define NoOutPut
+#undef NoOutPut
 
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
+#define maxIterTimes 5000
 
 Vector3i HeightLine::Both(-1,2,-1);
 Vector3i HeightLine::Left(-1,1,0);
@@ -520,13 +521,16 @@ cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
     while(!Pure.empty())
     {
         DealRegion(Pure.front(),List);
+#ifndef NoOutPut
         cout<<'['<<Pure.front().Begin<<','<<Pure.front().End<<']'<<"->";
+#endif
         Pure.pop();
     }
     List.push_front(Pair('(',0));
     List.push_back(Pair(')',Size-1));
-
+#ifndef NoOutPut
     disp(List);
+#endif
 }
 
 inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
@@ -786,14 +790,16 @@ void OptiTree::BuildTree(HeightLine &HL)
     FreezeTree();
     gotoRoot();
     preventEmpty();
-    //list<short> Index;list<char> Brackets;
+
     list<Pair> Index;
-    //HL.toBrackets(Index,Brackets);
+
     HL.toBrackets(Index);
-    //cout<<Brackets<<endl;
+
     auto iter=Index.begin();
-    //auto iter=Brackets.begin();
+
+#ifndef NoOutPut
     qDebug("开始BuildTree");
+#endif
 
     for(;iter!=Index.end();)
     {
@@ -843,39 +849,28 @@ void OptiTree::BuildTree(HeightLine &HL)
         }
         iter++;
     }
+#ifndef NoOutPut
     cout<<endl;
     qDebug("开始插入水区间分段");
+#endif
     queue<Region> waterRegion;
     HL.toWaterRegion(waterRegion);
     while(!waterRegion.empty())
     {
         add(waterRegion.front());
         waterRegion.pop();
+#ifndef NoOutPut
         qDebug("rua!");
+#endif
     }
+#ifndef NoOutPut
     qDebug("优化树构建完毕");
+#endif
     ShowTree();
 }
 
 void OptiTree::Compress(HeightLine &HL)
 {
-    /*queue<Node*> Que;
-    Que.push(Root);
-    Node *Temp=NULL;
-    while(!Que.empty())
-    {
-        HL.Sink(Temp=Que.front());
-        Que.pop();
-        if(Temp->haveSib())
-        {
-            Que.push(Temp->Sib);
-        }
-        if(Temp->haveChild())
-        {
-            Que.push(Temp->Child);
-        }
-
-    }*/
     //DFS中序遍历
     HL.Sink(Current());
     if(Current()->haveChild())
@@ -975,7 +970,7 @@ Node* Node::creatSib(short beg, short end)
 }
 
 Node* Node::findRightBesideBrother(Region Reg)
-//返回最远的与Reg右邻的节点的brother
+//返回最近的与Reg右邻的节点的brother
 {
     //如果haveSib且Sib不在Reg的右侧，则向右继续寻找
     //如果haveSib且Sib在Reg的右侧，返回this
@@ -989,11 +984,20 @@ Node* Node::findRightBesideBrother(Region Reg)
 void OptiTree::add(Region newR)
 {
     gotoRoot();
-    while(true)
+    int i=0;
+    qDebug()<<"尝试插入区间["<<newR.Begin<<','<<newR.End<<']';
+    while(++i)
     {
+        if(i>=maxIterTimes)
+        {
+            qDebug()<<"'区间["<<newR.Begin<<','<<newR.End<<"]连续尝试超过"<<maxIterTimes<<"次，强制停止";
+            return;
+        }
         if(conflictWith(Current(),newR))
         {
+#ifndef NoOutPut
             qDebug()<<"区间["<<newR.Begin<<','<<newR.End<<"]与当前节点冲突，不可插入";
+#endif
             return;
         }
         if(Current()>=newR)
@@ -1001,13 +1005,17 @@ void OptiTree::add(Region newR)
             if(!Current()->haveChild())
             {
                 Current()->creatChild()->SetValue(newR.Begin,newR.End);
+#ifndef NoOutPut
                 qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
+#endif
                 return;
             }
             else if(newR>=Current()->Child)
             {
                 Node::moveSib(Current()->Child->findRightBesideBrother(newR),Current()->insertChild(newR));
+#ifndef NoOutPut
                 qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
+#endif
                 return;
             }
             else
@@ -1015,6 +1023,22 @@ void OptiTree::add(Region newR)
                 goDown();continue;
             }
         }
+
+        if(Current()->haveSib()&&isRightBeside(Current(),newR)&&newR>=Current()->Sib)
+        {
+            Node*temp=Current()->Sib->findRightBesideBrother(newR);
+
+            Current()->insertSib(newR);
+            //Node*oldSib=Current()->Sib->Sib;
+            swap(Current()->Sib->Sib,Current()->Sib->Child);
+            //Current()->Sib->Sib=NULL;
+            Node::moveSib(temp,Current()->Sib);
+#ifndef NoOutPut
+            qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
+#endif
+            return;
+        }
+
 
         if(isRightBeside(newR,Current()))
         {
@@ -1027,7 +1051,9 @@ void OptiTree::add(Region newR)
             if(!Current()->haveSib()||isRightBeside(newR,Current()->Sib))
             {
                 Current()->insertSib(newR);
+#ifndef NoOutPut
                 qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
+#endif
                 return;
             }
             else
