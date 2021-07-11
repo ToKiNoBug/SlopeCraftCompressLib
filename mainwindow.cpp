@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    OptiTree testTree;
+    /*OptiTree testTree;
     testTree.Root->SetValue(0,63);
     testTree.Current()->creatChild(0,32)->creatSib(33,63);
     testTree.goDown();
@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     testTree.ShowTree();
 
     testTree.add({22,33});
-    testTree.ShowTree();
+    testTree.ShowTree();*/
 
 
 }
@@ -40,7 +40,7 @@ void MainWindow::on_GenerateAndShow_clicked()
 {
     Pair u;
     cout<<u.equalto('(')<<u.equalto(')')<<endl;
-    Raw=HeightLine(128+1,'R');
+    Raw=HeightLine(512+1,'R');
     //QPixmap pxm=;
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(QPixmap::fromImage(Raw.toQImage().scaled(ui->ShowHeightLine->width(),ui->ShowHeightLine->height())));

@@ -1,7 +1,7 @@
 #include "optitree.h"
 //#define HL_Rand_1
 
-#undef NoOutPut
+#define NoOutPut
 
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
@@ -123,18 +123,6 @@ void Node::refreshDegree()
 Node* Node::insertChild(Node *newChild)
 //在自己与newChild之间插入新的子节点
 {
-    /*if(haveChild())
-    {
-        Node* oldChild=Child;
-        Child=newChild;
-        Child->Child=oldChild;
-        Child->Sib=oldChild->Sib;
-        oldChild->Sib=NULL;
-    }
-    else
-    {
-        Child=newChild;
-    }*/
     Node *oldChild=Child;
     Child=newChild;
     Child->Child=oldChild;
@@ -183,9 +171,9 @@ Node* Node::moveSib(Node *oldBrother, Node *newBrother)
         qDebug()<<"moveSib错误：newBrother已有激活的Sib";
         return NULL;
     }
-    swap(oldBrother->Child,newBrother->Child);
+    swap(oldBrother->Sib,newBrother->Sib);
     newBrother->refreshDegree();
-    return newBrother->Child;
+    return newBrother->Sib;
 }
 
 short Node::maxSibEnd()
@@ -329,7 +317,7 @@ HeightLine::HeightLine(int _size,char method,int Low,int High)
         for(int i=1;i<Size;i++)
         {
 
-            if(rand()%5==0){
+            if(rand()%5==6){
                 switch (rand()%3)
                 {
                 case 0:
@@ -906,7 +894,7 @@ void OptiTree::NaturalOpti(HeightLine& HL)
     gotoRoot();
     Compress(HL);
     HL.SinkBoundary();
-    //HL.SinkBoundary();
+    HL.SinkBoundary();
 }
 
 void disp(const list<Pair>&L)
@@ -985,7 +973,9 @@ void OptiTree::add(Region newR)
 {
     gotoRoot();
     int i=0;
+#ifndef NoOutPut
     qDebug()<<"尝试插入区间["<<newR.Begin<<','<<newR.End<<']';
+#endif
     while(++i)
     {
         if(i>=maxIterTimes)
@@ -1026,12 +1016,11 @@ void OptiTree::add(Region newR)
 
         if(Current()->haveSib()&&isRightBeside(Current(),newR)&&newR>=Current()->Sib)
         {
-            Node*temp=Current()->Sib->findRightBesideBrother(newR);
 
             Current()->insertSib(newR);
-            //Node*oldSib=Current()->Sib->Sib;
             swap(Current()->Sib->Sib,Current()->Sib->Child);
-            //Current()->Sib->Sib=NULL;
+            Node* temp=Current()->Sib->Child->findRightBesideBrother(newR);
+            temp->disp();
             Node::moveSib(temp,Current()->Sib);
 #ifndef NoOutPut
             qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
