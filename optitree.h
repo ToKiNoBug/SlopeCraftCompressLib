@@ -55,6 +55,7 @@ public:
     QImage toQImage();
     void toBrackets(list<short>&index,list<char>&brackets);
     void toBrackets(list<Pair>&);
+    void toWaterRegion(queue<Region>&);
     void DealRegion(Region,list<Pair>&);
     VectorXi ValidHighLine();
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
@@ -138,6 +139,7 @@ public:
     void gotoRoot();
 
     void BuildTree(HeightLine&);
+
     void Compress(HeightLine&);
 
     void FreezeTree();

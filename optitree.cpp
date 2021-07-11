@@ -1,6 +1,8 @@
 #include "optitree.h"
 //#define HL_Rand_1
 
+#define NoOutPut
+
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
 
@@ -206,7 +208,7 @@ OptiTree::~OptiTree()
     delete Root;
 }
 
-inline Node* OptiTree::Current()
+Node* OptiTree::Current()
 {
     return Stack.top();
 }
@@ -521,7 +523,8 @@ cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
         cout<<'['<<Pure.front().Begin<<','<<Pure.front().End<<']'<<"->";
         Pure.pop();
     }
-
+    List.push_front(Pair('(',0));
+    List.push_back(Pair(')',Size-1));
 
     disp(List);
 }
@@ -531,6 +534,25 @@ inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
     if(PR.Begin<0||PR.End<PR.Begin)return;
     List.push_back(Pair('(',PR.Begin));
     List.push_back(Pair(')',PR.End));
+}
+
+void HeightLine::toWaterRegion(queue<Region> &RList)
+{
+
+    Region Temp;
+    Temp.Begin=0;Temp.End=Size-1;
+    for(int i=1;i<Size;i++)
+    {
+        //qDebug("rue~");
+        if(isWater(i))
+        {
+            Temp.End=i-1;
+            RList.push(Temp);
+            Temp.End=Size-1;
+            Temp.Begin=i;
+        }
+    }
+    RList.push(Temp);
 }
 
 inline bool HeightLine::isContinious()
@@ -822,6 +844,15 @@ void OptiTree::BuildTree(HeightLine &HL)
         iter++;
     }
     cout<<endl;
+    qDebug("开始插入水区间分段");
+    queue<Region> waterRegion;
+    HL.toWaterRegion(waterRegion);
+    while(!waterRegion.empty())
+    {
+        add(waterRegion.front());
+        waterRegion.pop();
+        qDebug("rua!");
+    }
     qDebug("优化树构建完毕");
     ShowTree();
 }
@@ -896,17 +927,17 @@ void disp(const list<Pair>&L)
     cout<<endl;
 }
 
-inline bool operator>=(Region a,Node*b)
+bool operator>=(Region a,Node*b)
 {
     return (a.Begin<=b->Begin)&&(a.End>=b->End);
 }
 
-inline bool operator>=(Node*a,Region b)
+bool operator>=(Node*a,Region b)
 {
     return (a->Begin<=b.Begin)&&(a->End>=b.End);
 }
 
-inline bool conflictWith(Region a,Node*b)
+bool conflictWith(Region a,Node*b)
 {
     if(a>=b||b>=a)return false;
     return ((a.End-b->Begin)*(a.Begin-b->End)<0);
@@ -927,18 +958,18 @@ inline bool isRightBeside(Node*a,Region b)
     return (a->End<=b.Begin);
 }
 
-inline Node* Node::SetValue(short beg, short end)
+Node* Node::SetValue(short beg, short end)
 {
     Begin=beg;End=end;
     return this;
 }
 
-inline Node* Node::creatChild(short beg, short end)
+Node* Node::creatChild(short beg, short end)
 {
     return creatChild()->SetValue(beg,end);
 }
 
-inline Node* Node::creatSib(short beg, short end)
+Node* Node::creatSib(short beg, short end)
 {
     return creatSib()->SetValue(beg,end);
 }
@@ -962,7 +993,7 @@ void OptiTree::add(Region newR)
     {
         if(conflictWith(Current(),newR))
         {
-            qDebug("newR与当前节点冲突，不可插入");
+            qDebug()<<"区间["<<newR.Begin<<','<<newR.End<<"]与当前节点冲突，不可插入";
             return;
         }
         if(Current()>=newR)
@@ -970,11 +1001,13 @@ void OptiTree::add(Region newR)
             if(!Current()->haveChild())
             {
                 Current()->creatChild()->SetValue(newR.Begin,newR.End);
+                qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
                 return;
             }
             else if(newR>=Current()->Child)
             {
                 Node::moveSib(Current()->Child->findRightBesideBrother(newR),Current()->insertChild(newR));
+                qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
                 return;
             }
             else
@@ -994,6 +1027,7 @@ void OptiTree::add(Region newR)
             if(!Current()->haveSib()||isRightBeside(newR,Current()->Sib))
             {
                 Current()->insertSib(newR);
+                qDebug()<<"成功插入区间["<<newR.Begin<<','<<newR.End<<']';
                 return;
             }
             else
