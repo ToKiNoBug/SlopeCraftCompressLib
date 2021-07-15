@@ -5,7 +5,7 @@
 #include <iomanip>
 
 #define Rows 128
-#define Freq 5
+#define Freq 20
 using namespace std;
 using namespace Eigen;
 MainWindow::MainWindow(QWidget *parent)
@@ -68,7 +68,7 @@ void MainWindow::on_doCompress_clicked()
     Result=HeightLine(Raw.HighLine,Raw.LowLine);
     //cout<<Result.HighLine.rows()<<','<<Result.HighLine.cols()<<endl;
     auto t=clock();
-    Tree.NaturalOpti(Result);
+    Tree.NaturalOpti(Result.HighLine,Result.LowLine);
     qDebug()<<"用时："<<clock()-t;
     ui->ShowResult->setPixmap(QPixmap::fromImage(Result.toQImage().scaled(ui->ShowResult->width(),ui->ShowResult->height())));
 

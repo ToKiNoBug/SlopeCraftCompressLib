@@ -67,7 +67,7 @@ public:
     bool isContinious();
     void Sink(Node*);
     //void SinkMonotonous();
-    void SinkBoundary();
+    void SinkBoundary(short=-1,short=-1);
     //void SinkInner();
     friend class OptiTree;
 };
@@ -129,9 +129,10 @@ public:
     ~OptiTree();//析构函数，删除所有节点
     void ShowTree();
     void NaturalOpti(VectorXi&,VectorXi&);
-    void NaturalOpti(HeightLine&);
+
     void add(Region);
 //private:
+    void NaturalOpti(HeightLine&,short,short);
     Node *Current();
     void goUp();
     void goDown();
@@ -143,7 +144,7 @@ public:
 
     void gotoRoot();
 
-    void BuildTree(HeightLine&,short=-1;short=-1);
+    void BuildTree(HeightLine&,short=-1,short=-1);
 
     void Compress(HeightLine&);
 

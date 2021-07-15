@@ -562,7 +562,7 @@ cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
         Pure.push(Temp);
         Temp.Begin=disPure.front().End+1;
         disPure.pop();
-        if(Temp.Begin>=Size-1)Temp.Begin=sEnd;
+        if(Temp.Begin>=sEnd)Temp.Begin=sEnd;
         Temp.End=sEnd;
     }
     Pure.push(Temp);
@@ -641,7 +641,7 @@ void HeightLine::toSubRegion(queue<Region> &Queue)
     }
     Queue.push(Temp);
 #ifndef NoOutPut
-    qDebug("输出Queue：");
+    /*qDebug("输出Queue：");
     qDebug()<<"size of Queue="<<Queue.size();
     QString disper="";
     while(!Queue.empty())
@@ -652,7 +652,7 @@ void HeightLine::toSubRegion(queue<Region> &Queue)
         disper+=QString::number(Queue.front().End)+"]->";
         Queue.pop();
     }
-    qDebug()<<disper;
+    qDebug()<<disper;*/
 #endif
 }
 
@@ -719,11 +719,15 @@ inline void HeightLine::Sink(Node*rg)
     }
 }
 
-void HeightLine::SinkBoundary()
+void HeightLine::SinkBoundary(short Beg,short End)
 {
+    if(Beg<0||End<Beg)
+    {
+        Beg=0;End=Size-1;
+    }
     if(isContinious())return;
     int gapB=0,gapE=0;
-    for(int i=0;i<Size-1;i++)//正向遍历，去除前端浮空
+    for(int i=Beg;i<=End;i++)//正向遍历，去除前端浮空
     {
         if(validHigh(i)-validHigh(i+1)>=2)//右浮空
         {
@@ -734,7 +738,7 @@ void HeightLine::SinkBoundary()
         }
     }
 
-    for(int i=Size-1;i>0;i--)
+    for(int i=End;i>Beg;i--)
     {
         if(validHigh(i)-validHigh(i-1)>=2)//左浮空
         {
@@ -748,7 +752,7 @@ void HeightLine::SinkBoundary()
     int FBegin=1,FEnd=Size-1;
     bool isReady=false;
 
-    for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
+    for(int i=Beg+1;i<End-2;i++)//从i=1遍历至i=Size-2
     {
         if(validHigh(i)-validHigh(i-1)>=2)//左浮空
         {FBegin=i;
@@ -769,10 +773,26 @@ void HeightLine::SinkBoundary()
 }
 
 
+void OptiTree::NaturalOpti(HeightLine& HL,short Beg,short End)
+{
+    BuildTree(HL,Beg,End);
+    gotoRoot();
+    Compress(HL);
+    HL.SinkBoundary();
+    HL.SinkBoundary();
+}
+
 void OptiTree::NaturalOpti(VectorXi &HighL,VectorXi&LowL)
 {
     HeightLine HL(HighL,LowL);
-    NaturalOpti(HL);
+    queue<Region> SRL;
+    HL.toSubRegion(SRL);
+    while(!SRL.empty())
+    {
+    NaturalOpti(HL,SRL.front().Begin,SRL.front().End);
+    SRL.pop();
+    }
+
     LowL=HL.LowLine;
     HighL=HL.HighLine;
 }
@@ -845,24 +865,11 @@ void OptiTree::BuildTree(HeightLine &HL,short Beg,short End)
         }
         iter++;
     }
-#ifndef NoOutPut
-    cout<<endl;
-    qDebug("开始插入水区间分段");
-#endif
-    queue<Region> waterRegion;
-    HL.toWaterRegion(waterRegion);
-    while(!waterRegion.empty())
-    {
-        add(waterRegion.front());
-        waterRegion.pop();
-#ifndef NoOutPut
-        qDebug("rua!");
-#endif
-    }
+
 #ifndef NoOutPut
     qDebug("优化树构建完毕");
-#endif
     ShowTree();
+#endif
 }
 
 void OptiTree::Compress(HeightLine &HL)
@@ -881,6 +888,9 @@ void OptiTree::Compress(HeightLine &HL)
         Compress(HL);
         goPrevSib();
     }
+#ifndef NoOutPut
+    qDebug("Compress函数完成");
+#endif
 }
 
 void OptiTree::FreezeTree()
@@ -896,14 +906,7 @@ void OptiTree::ShowTree()
     cout<<endl;
 }
 
-void OptiTree::NaturalOpti(HeightLine& HL)
-{
-    BuildTree(HL);
-    gotoRoot();
-    Compress(HL);
-    HL.SinkBoundary();
-    HL.SinkBoundary();
-}
+
 
 void disp(const list<Pair>&L)
 {
