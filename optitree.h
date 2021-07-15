@@ -143,7 +143,7 @@ public:
 
     void gotoRoot();
 
-    void BuildTree(HeightLine&);
+    void BuildTree(HeightLine&,short=-1;short=-1);
 
     void Compress(HeightLine&);
 

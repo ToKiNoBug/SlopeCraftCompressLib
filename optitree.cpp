@@ -708,43 +708,6 @@ inline VectorXi HeightLine::ValidHighLine()
     return ((HighLine-LowLine).array()==0).select(HighLine,HighLine.array()-1);
 }
 
-/*
-void HeightLine::toBrackets_Near(list<short> &index, string &brackets)
-{
-
-}*/
-
-/*void HeightLine::SinkMonotonous()
-{
-    if(isContinious())return;
-    int IndexB=0,IndexE=0;
-    int gapB=0,gapE=0;//表示不连续段的落差绝对值
-    bool isReady=false,isIncrease=false;
-    for(int i=1;i<Size;i++)
-    {
-        isReady=isReady&&(isIncrease==(Height(i)>Height(i-1)));//如果区间不单调，不予沉降
-        if(abs(Height(i)-Height(i-1))>=2)//出现不连续
-        {
-            if(!isReady)//进入了不连续区间
-            {
-                isIncrease=Height(i)>Height(i-1);
-                gapB=abs(Height(i)-Height(i-1))-1;
-                isReady=true;
-                IndexB=i;
-                continue;
-            }
-            if(isReady)//将要结束一个不连续单调区间
-            {
-                gapE=abs(Height(i)-Height(i-1))-1;
-                IndexE=i-1;
-                Height.segment(IndexB,IndexE-IndexB+1).array()-=min(isIncrease?gapB:gapE,Height.segment(IndexB,IndexE-IndexB+1).minCoeff());
-                isReady=false;
-                IndexB=-1;IndexE=-1;
-                qDebug()<<"沉降了一个漂浮单调递"<<(isIncrease?"增":"减")<<"区间";
-            }
-        }
-    }
-}*/
 
 inline void HeightLine::Sink(Node*rg)
 {
@@ -784,34 +747,6 @@ void HeightLine::SinkBoundary()
 
     int FBegin=1,FEnd=Size-1;
     bool isReady=false;
-    //bool isBSinkable=false,isESinkable=false;
-    /*
-    for(int i=1;i<Size;i++)
-    {
-        if(abs(Height(i)-Height(i-1))>=2)
-        {
-            if(!isReady)
-            {
-                FBegin=i;
-                gapB=Height(i)-Height(i-1);
-                isBSinkable=gapB>0;
-                gapB=abs(gapB)-1;
-                isReady=true;
-                continue;
-            }
-            if(isReady)
-            {
-                FEnd=i-1;
-                gapE=Height(i)-Height(i-1);
-                isESinkable=gapE<0;
-                gapE=abs(gapE)-1;
-                Height.segment(FBegin,FEnd-FBegin+1).array()-=min(min(isBSinkable*gapB,isESinkable*gapE),Height.segment(FBegin,FEnd-FBegin+1).minCoeff());
-                isReady=false;
-
-            }
-        }
-    }*/
-
 
     for(int i=1;i<Size-1;i++)//从i=1遍历至i=Size-2
     {
@@ -833,41 +768,6 @@ void HeightLine::SinkBoundary()
 
 }
 
-/*void HeightLine::SinkInner()
-{
-    queue<short>Gap,Index;//取断崖的前值为index
-    int GapVal=0,IndexVal=0;
-    bool isBSinkable=false,isESinkable=false;
-    int Offset=0;
-    for(int i=1;i<Size;i++)
-    {
-        if(abs(GapVal=Height(i)-Height(i-1))>=2)
-        {
-            Gap.push(GapVal);//Gap值为后减前
-            Index.push(i-1);
-            qDebug()<<i-1;
-        }
-    }
-    if(Gap.size()<=1)return;
-    do
-    {
-        GapVal=Gap.front();IndexVal=Index.front();
-        Gap.pop();Index.pop();
-        isBSinkable=GapVal>0;//对于一段内部连续的区间，前沟大于0才有意义
-        isESinkable=Gap.front()<0;
-        if(!isBSinkable&&!isESinkable)continue;
-        if(isBSinkable&&isESinkable)
-            Offset=min(GapVal,abs(Gap.front()))-1;
-        if(isBSinkable&&!isESinkable)
-            Offset=abs(Gap.front())-1;
-        if(!isBSinkable&&isESinkable)
-            Offset=GapVal-1;
-        Height.segment(IndexVal,Index.front()-IndexVal+1).array()-=min(Offset,Height.segment(IndexVal,Index.front()-IndexVal+1).minCoeff());
-    }
-    while(!Gap.empty());
-
-}*/
-
 
 void OptiTree::NaturalOpti(VectorXi &HighL,VectorXi&LowL)
 {
@@ -878,16 +778,19 @@ void OptiTree::NaturalOpti(VectorXi &HighL,VectorXi&LowL)
 }
 
 
-void OptiTree::BuildTree(HeightLine &HL)
+void OptiTree::BuildTree(HeightLine &HL,short Beg,short End)
 {
     FreezeTree();
     gotoRoot();
     preventEmpty();
 
     list<Pair> Index;
-
+    if(Beg<0||Beg>End)
+    {
+        Beg=0;End=HL.Size-1;
+    }
     //HL.toBrackets(Index);
-    HL.segment2Brackets(Index,0,HL.Size-1);
+    HL.segment2Brackets(Index,Beg,End);
     auto iter=Index.begin();
 
 #ifndef NoOutPut
