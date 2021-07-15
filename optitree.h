@@ -49,17 +49,19 @@ public:
     int Size;//totalSize
     VectorXi HighLine;//Height refers to LowLine
     VectorXi LowLine;
-    static MatrixXi *Base;
-    short currentColum;
+    static MatrixXi Base;
+    static short currentColum;
     static Vector3i Both;
     static Vector3i Left;
     static Vector3i Right;
 
     QImage toQImage();
-    void toBrackets(list<short>&index,list<char>&brackets);
+    //void toBrackets(list<short>&index,list<char>&brackets);
     void toBrackets(list<Pair>&);
+    void segment2Brackets(list<Pair>&,short,short);
     void toWaterRegion(queue<Region>&);
     void DealRegion(Region,list<Pair>&);
+    void toSubRegion(queue<Region>&);
     VectorXi ValidHighLine();
     //void toBrackets_Near(list<short>&index,list<char>&brackets);
     bool isContinious();

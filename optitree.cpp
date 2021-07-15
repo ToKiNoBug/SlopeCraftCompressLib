@@ -1,7 +1,7 @@
 #include "optitree.h"
 //#define HL_Rand_1
 
-#define NoOutPut
+//#define NoOutPut
 
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
@@ -10,6 +10,8 @@
 Vector3i HeightLine::Both(-1,2,-1);
 Vector3i HeightLine::Left(-1,1,0);
 Vector3i HeightLine::Right(0,1,-1);
+MatrixXi HeightLine::Base;
+short HeightLine::currentColum=0;
 
 Pair::Pair(char _type,short _index)
 {
@@ -298,7 +300,7 @@ HeightLine::HeightLine(int _size,char method,int Low,int High)
         srand(time(0));
         isFirst=false;
         }
-        float x=(rand()%32768)/32767.0;
+        float x=cos((rand()%32768)/32767.0)/1.1;
         for(int i=0;i<Size;i++)
         {
             x=4.0*x*(1.0-x);
@@ -316,8 +318,13 @@ HeightLine::HeightLine(int _size,char method,int Low,int High)
         Height=(Height.array()>=0).select(Height,-1);*/
         for(int i=1;i<Size;i++)
         {
-
-            if(rand()%5==6){
+            if(isAir(i))
+            {
+                Offset(i)=0;
+                HighLine(i)+=HighLine(i-1);
+            }
+            else
+                if(isWater(i)){
                 switch (rand()%3)
                 {
                 case 0:
@@ -373,17 +380,22 @@ HeightLine::HeightLine(const VectorXi&HighL,const VectorXi&LowL)
 
 inline bool HeightLine::isWater(int index)
 {
-    return HighLine(index)-LowLine(index);//0->普通方块，>=1 -> 水柱
+    //return HighLine(index)-LowLine(index);//0->普通方块，>=1 -> 水柱
+    if(index<=0)return false;
+    return Base(index-1,currentColum)==12;
 }//水柱罩顶玻璃计入最高，但托底玻璃不计入
 
 inline bool HeightLine::isAir(int index)
 {
-    return (*Base)(index-0,currentColum)==0;
+    if(index<=0)return false;
+    return Base(index-1,currentColum)==0;
 }
 
 inline bool HeightLine::isNormalBlock(int index)
 {
-    return (!isAir(index))&&(!isWater(index));
+    return !(isAir(index)||isWater(index));
+    /*if(index<=0)return true;
+    return (Base(index-1,currentColum)>0)&&(Base(index-1,currentColum)!=12);*/
 }
 
 QImage HeightLine::toQImage()
@@ -395,6 +407,7 @@ QImage HeightLine::toQImage()
 
     for(int i=0;i<Size;i++)
     {
+        if(isAir(i))continue;
         img.setPixelColor(i,img.height()-1-HighLine(i),isT);
         if(isWater(i))
         {
@@ -408,52 +421,6 @@ QImage HeightLine::toQImage()
     return img;
 }
 
-void HeightLine::toBrackets(list<short>&index,list<char>&brackets)
-{
-    if(Size<=0)return;
-    index.clear();brackets.clear();
-    brackets.push_back('(');index.push_back(0);
-    int LOffset=0,ROffset=0;
-    stack<short>S;//最后一步再加最外侧的大括号，将L与R的补偿设为1，自动囊括。
-
-    //考虑更优的补全括号方式：不一定要补全到两端，也许可以补全到最近的一个左/又括号
-    for(int i=1;i<Size;i++)
-    {
-        if(isWater(i)||validHigh(i)>validHigh(i-1))//上升处，i-1为孤立区间的末尾
-        {
-            if(S.empty())LOffset++;
-            else
-                S.pop();
-            brackets.push_back(')');
-            index.push_back(i-1);
-        }
-        if(isWater(i)||validHigh(i)<validHigh(i-1))//下降处，是孤立区间的起始
-        {
-            S.push('F');
-            brackets.push_back('(');
-            index.push_back(i);
-        }
-
-
-
-    }
-    ROffset+=1+S.size();
-
-    //qDebug()<<"LOffset="<<LOffset<<";  ROffset="<<ROffset;
-    //cout<<"Raw="<<brackets<<endl;
-
-    for(;LOffset>0;LOffset--)
-    {
-        index.insert(index.begin(),0);
-        brackets.push_front('(');
-    }
-    for(;ROffset>0;ROffset--)
-    {
-        index.push_back(Size-1);
-        brackets.push_back(')');
-    }
-
-}
 
 void HeightLine::toBrackets(list<Pair> &List)
 {
@@ -531,6 +498,90 @@ cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
 #endif
 }
 
+void HeightLine::segment2Brackets(list<Pair>&List,short sBeg,short sEnd)
+{
+    if(sEnd<sBeg||sBeg<0)return;
+    List.clear();
+
+    if(sBeg==sEnd)
+    {
+        List.push_back(Pair('(',sBeg));
+        List.push_back(Pair(')',sEnd));
+        return;
+    }
+
+    queue<Region>Pure;
+    queue<Region> disPure;//极大值区间
+    Region Temp;
+    bool isReady=false;
+    VectorXi VHL=ValidHighLine();
+    VectorXi ScanBoth=VHL,ScanLeft=VHL,ScanRight=VHL;
+    ScanBoth.setZero();ScanLeft.setZero();ScanRight.setZero();
+    for(int i=sBeg+1;i<sEnd-1;i++)//分别用三个算子处理
+    {
+        if(isWater(i))
+        {
+            /*ScanBoth(i)=2;
+            ScanLeft(i)=1;
+            ScanRight(i)=1;
+            continue;*/
+        }
+        ScanBoth(i)=(VHL.segment(i-1,3).array()*Both.array()).sum();
+        ScanLeft(i)=(VHL.segment(i-1,3).array()*Left.array()).sum();
+        ScanRight(i)=(VHL.segment(i-1,3).array()*Right.array()).sum();
+    }
+ScanBoth=(ScanBoth.array()>=0).select(ScanBoth,0);
+ScanLeft=(ScanLeft.array()>=0).select(ScanLeft,0);
+ScanRight=(ScanRight.array()>=0).select(ScanRight,0);
+/*
+cout<<"ScanBoth="<<endl<<ScanBoth.transpose()<<endl;
+cout<<"ScanLeft="<<endl<<ScanLeft.transpose()<<endl;
+cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
+    isReady=false;
+    for(int i=sBeg+1;i<sEnd-1;i++)
+    {
+        if(!isReady&&ScanBoth(i)&&ScanLeft(i))
+        {
+            isReady=true;
+            Temp.Begin=i;
+        }
+        if(isReady&&ScanBoth(i)&&ScanRight(i))
+        {
+            Temp.End=i;
+            disPure.push(Temp);
+            Temp.Begin=-1;
+            Temp.End=-1;
+            isReady=false;
+        }
+    }
+    Temp.Begin=sBeg;
+    Temp.End=sEnd;
+    while(!disPure.empty())
+    {
+        Temp.End=disPure.front().Begin-1;
+        Pure.push(Temp);
+        Temp.Begin=disPure.front().End+1;
+        disPure.pop();
+        if(Temp.Begin>=Size-1)Temp.Begin=sEnd;
+        Temp.End=sEnd;
+    }
+    Pure.push(Temp);
+
+    while(!Pure.empty())
+    {
+        DealRegion(Pure.front(),List);
+#ifndef NoOutPut
+        cout<<'['<<Pure.front().Begin<<','<<Pure.front().End<<']'<<"->";
+#endif
+        Pure.pop();
+    }
+    List.push_front(Pair('(',sBeg));
+    List.push_back(Pair(')',sEnd));
+#ifndef NoOutPut
+    disp(List);
+#endif
+}
+
 inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
 {
     if(PR.Begin<0||PR.End<PR.Begin)return;
@@ -566,11 +617,55 @@ inline int HeightLine::validHigh(int index)
     if(isWater(index))return HighLine(index)-1;
     else return HighLine(index);
 }
+
+void HeightLine::toSubRegion(queue<Region> &Queue)
+{
+    while(!Queue.empty())Queue.pop();
+    Region Temp;
+    Temp.Begin=0;Temp.End=Size-1;
+    for(int i=1;i<Size;i++)
+    {
+        if(!isNormalBlock(i))
+        {
+            Temp.End=i-1;
+            Queue.push(Temp);
+            Temp.End=Size-1;
+            Temp.Begin=i;
+            if(isAir(i)&&i<Size-1)
+            {
+                HighLine(i)=HighLine(i+1);
+                LowLine(i)=LowLine(i+1);
+            }
+            qDebug()<<"出现断点"<<i;
+        }
+    }
+    Queue.push(Temp);
+#ifndef NoOutPut
+    qDebug("输出Queue：");
+    qDebug()<<"size of Queue="<<Queue.size();
+    QString disper="";
+    while(!Queue.empty())
+    {
+        //cout<<'['<<Queue.back().Begin<<','<<Queue.back().End<<"]->";
+        disper+='[';
+        disper+=QString::number(Queue.front().Begin)+',';
+        disper+=QString::number(Queue.front().End)+"]->";
+        Queue.pop();
+    }
+    qDebug()<<disper;
+#endif
+}
+
 VectorXi HeightLine::DepthLine()
 {
     VectorXi Depth=HighLine.segment(1,Size-1).array()*0;
     for(int i=0;i<Size-1;i++)
     {
+        if(isAir(i+1))
+        {
+            Depth(i)=1;
+            continue;
+        }
         if(isWater(i+1))
         {
             switch (HighLine(i+1)-LowLine(i+1)) {
@@ -791,8 +886,8 @@ void OptiTree::BuildTree(HeightLine &HL)
 
     list<Pair> Index;
 
-    HL.toBrackets(Index);
-
+    //HL.toBrackets(Index);
+    HL.segment2Brackets(Index,0,HL.Size-1);
     auto iter=Index.begin();
 
 #ifndef NoOutPut
