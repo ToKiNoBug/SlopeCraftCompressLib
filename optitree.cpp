@@ -421,7 +421,7 @@ QImage HeightLine::toQImage()
     return img;
 }
 
-
+/*
 void HeightLine::toBrackets(list<Pair> &List)
 {
     if(Size<=0)return;
@@ -437,10 +437,10 @@ void HeightLine::toBrackets(list<Pair> &List)
     {
         if(isWater(i))
         {
-            /*ScanBoth(i)=2;
+            ScanBoth(i)=2;
             ScanLeft(i)=1;
             ScanRight(i)=1;
-            continue;*/
+            continue;
         }
         ScanBoth(i)=(VHL.segment(i-1,3).array()*Both.array()).sum();
         ScanLeft(i)=(VHL.segment(i-1,3).array()*Left.array()).sum();
@@ -449,10 +449,6 @@ void HeightLine::toBrackets(list<Pair> &List)
 ScanBoth=(ScanBoth.array()>=0).select(ScanBoth,0);
 ScanLeft=(ScanLeft.array()>=0).select(ScanLeft,0);
 ScanRight=(ScanRight.array()>=0).select(ScanRight,0);
-/*
-cout<<"ScanBoth="<<endl<<ScanBoth.transpose()<<endl;
-cout<<"ScanLeft="<<endl<<ScanLeft.transpose()<<endl;
-cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
     isReady=false;
     for(int i=1;i<Size-1;i++)
     {
@@ -497,7 +493,7 @@ cout<<"ScanRight="<<endl<<ScanRight.transpose()<<endl;*/
     disp(List);
 #endif
 }
-
+*/
 void HeightLine::segment2Brackets(list<Pair>&List,short sBeg,short sEnd)
 {
     if(sEnd<sBeg||sBeg<0)return;
@@ -589,7 +585,7 @@ inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
     List.push_back(Pair(')',PR.End));
 }
 
-void HeightLine::toWaterRegion(queue<Region> &RList)
+/*void HeightLine::toWaterRegion(queue<Region> &RList)
 {
 
     Region Temp;
@@ -606,12 +602,9 @@ void HeightLine::toWaterRegion(queue<Region> &RList)
         }
     }
     RList.push(Temp);
-}
+}*/
 
-inline bool HeightLine::isContinious()
-{
-    return (HighLine.segment(1,Size-2).array()-HighLine.segment(0,Size-2).array()==0).all();
-}
+
 inline int HeightLine::validHigh(int index)
 {
     if(isAir(index))return -1;
@@ -727,7 +720,6 @@ void HeightLine::SinkBoundary(short Beg,short End)
     {
         Beg=0;End=Size-1;
     }
-    if(isContinious())return;
     int gapB=0,gapE=0;
 
     for(int i=Beg;i<End;i++)//正向遍历，去除前端浮空
