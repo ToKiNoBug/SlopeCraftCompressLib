@@ -74,12 +74,13 @@ public:
 
 void disp(const list<Pair>&);
 
+/*
 bool operator>=(Region,Node*);
 bool operator>=(Node*,Region);
 bool conflictWith(Region,Node*);
 bool conflictWith(Node*,Region);
 bool isRightBeside(Region,Node*);
-bool isRightBeside(Node*,Region);
+bool isRightBeside(Node*,Region);*/
 
 class Node//二叉链，与二叉树没有本质区别
 {
@@ -89,11 +90,12 @@ public:
     void disp();
     friend class OptiTree;
     friend class HeightLine;
+    /*
     friend bool operator>=(Region,Node*);
     friend bool conflictWith(Region,Node*);
     friend bool operator>=(Node*,Region);
     friend bool isRightBeside(Region,Node*);
-    friend bool isRightBeside(Node*,Region);
+    friend bool isRightBeside(Node*,Region);*/
 //private:
     short Begin;
     short End;
@@ -119,7 +121,7 @@ public:
     short maxSibEnd();
     void refreshDegree();
     Node* SetValue(short,short);
-    Node* findRightBesideBrother(Region);
+    //Node* findRightBesideBrother(Region);
 };
 
 class OptiTree
@@ -130,7 +132,7 @@ public:
     void ShowTree();
     void NaturalOpti(VectorXi&,VectorXi&);
 
-    void add(Region);
+    //void add(Region);
 private:
     void NaturalOpti(HeightLine&,short,short);
     Node *Current();

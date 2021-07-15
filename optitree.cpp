@@ -912,7 +912,7 @@ void disp(const list<Pair>&L)
     cout<<endl;
     cout<<endl;
 }
-
+/*
 bool operator>=(Region a,Node*b)
 {
     return (a.Begin<=b->Begin)&&(a.End>=b->End);
@@ -942,7 +942,7 @@ inline bool isRightBeside(Region a,Node*b)//指示a在b的左侧成立
 inline bool isRightBeside(Node*a,Region b)
 {
     return (a->End<=b.Begin);
-}
+}*/
 
 Node* Node::SetValue(short beg, short end)
 {
@@ -959,7 +959,7 @@ Node* Node::creatSib(short beg, short end)
 {
     return creatSib()->SetValue(beg,end);
 }
-
+/*
 Node* Node::findRightBesideBrother(Region Reg)
 //返回最近的与Reg右邻的节点的brother
 {
@@ -971,6 +971,7 @@ Node* Node::findRightBesideBrother(Region Reg)
 
     return Sib->findRightBesideBrother(Reg);
 }
+
 
 void OptiTree::add(Region newR)
 {
@@ -1057,3 +1058,4 @@ void OptiTree::add(Region newR)
     }
 
 }
+*/
