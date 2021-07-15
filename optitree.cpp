@@ -1,7 +1,7 @@
 #include "optitree.h"
 //#define HL_Rand_1
 
-//#define NoOutPut
+#define NoOutPut
 
 #define HighThreshold 1.5/3
 #define LowThreshold 0.1/3
@@ -614,6 +614,7 @@ inline bool HeightLine::isContinious()
 }
 inline int HeightLine::validHigh(int index)
 {
+    if(isAir(index))return -1;
     if(isWater(index))return HighLine(index)-1;
     else return HighLine(index);
 }
@@ -636,7 +637,9 @@ void HeightLine::toSubRegion(queue<Region> &Queue)
                 HighLine(i)=HighLine(i+1);
                 LowLine(i)=LowLine(i+1);
             }
+#ifndef NoOutPut
             qDebug()<<"出现断点"<<i;
+#endif
         }
     }
     Queue.push(Temp);
@@ -682,7 +685,6 @@ VectorXi HeightLine::DepthLine()
         }
         else
         {
-
                 if(validHigh(i+1)<validHigh(i))
                 {
                     Depth(i)=0;
@@ -727,31 +729,30 @@ void HeightLine::SinkBoundary(short Beg,short End)
     }
     if(isContinious())return;
     int gapB=0,gapE=0;
-    for(int i=Beg;i<=End;i++)//正向遍历，去除前端浮空
+
+    for(int i=Beg;i<End;i++)//正向遍历，去除前端浮空
     {
         if(validHigh(i)-validHigh(i+1)>=2)//右浮空
         {
             gapE=validHigh(i)-validHigh(i+1);//表示不连续段的落差
-            HighLine.segment(0,i+1).array()-=min(gapE-1,LowLine.segment(0,i+1).minCoeff());
-            LowLine.segment(0,i+1).array()-=min(gapE-1,LowLine.segment(0,i+1).minCoeff());
+            HighLine.segment(Beg,i-Beg+1).array()-=min(gapE-1,LowLine.segment(Beg,i-Beg+1).minCoeff());
+            LowLine.segment(Beg,i-Beg+1).array()-=min(gapE-1,LowLine.segment(Beg,i-Beg+1).minCoeff());
             break;
         }
     }
-
     for(int i=End;i>Beg;i--)
     {
         if(validHigh(i)-validHigh(i-1)>=2)//左浮空
         {
             gapB=validHigh(i)-validHigh(i-1);
-            HighLine.segment(i,Size-i).array()-=min(gapB-1,LowLine.segment(i,Size-i).minCoeff());
-            LowLine.segment(i,Size-i).array()-=min(gapB-1,LowLine.segment(i,Size-i).minCoeff());
+            HighLine.segment(i,End+1-i).array()-=min(gapB-1,LowLine.segment(i,End+1-i).minCoeff());
+            LowLine.segment(i,End+1-i).array()-=min(gapB-1,LowLine.segment(i,End+1-i).minCoeff());
             break;
         }
     }
 
-    int FBegin=1,FEnd=Size-1;
+    int FBegin=Beg+1,FEnd=End;
     bool isReady=false;
-
     for(int i=Beg+1;i<End-2;i++)//从i=1遍历至i=Size-2
     {
         if(validHigh(i)-validHigh(i-1)>=2)//左浮空
@@ -769,7 +770,6 @@ void HeightLine::SinkBoundary(short Beg,short End)
             isReady=false;
         }
     }
-
 }
 
 
@@ -778,8 +778,8 @@ void OptiTree::NaturalOpti(HeightLine& HL,short Beg,short End)
     BuildTree(HL,Beg,End);
     gotoRoot();
     Compress(HL);
-    HL.SinkBoundary();
-    HL.SinkBoundary();
+    HL.SinkBoundary(Beg,End);
+    HL.SinkBoundary(Beg,End);
 }
 
 void OptiTree::NaturalOpti(VectorXi &HighL,VectorXi&LowL)

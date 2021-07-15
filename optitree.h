@@ -131,7 +131,7 @@ public:
     void NaturalOpti(VectorXi&,VectorXi&);
 
     void add(Region);
-//private:
+private:
     void NaturalOpti(HeightLine&,short,short);
     Node *Current();
     void goUp();

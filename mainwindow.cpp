@@ -4,8 +4,8 @@
 #include "optitree.h"
 #include <iomanip>
 
-#define Rows 128
-#define Freq 20
+#define Rows 512
+#define Freq 5
 using namespace std;
 using namespace Eigen;
 MainWindow::MainWindow(QWidget *parent)
@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     HeightLine::Base=MatrixXi::Random(Rows,Rows);
     HeightLine::Base=HeightLine::Base-Freq*(HeightLine::Base/Freq);
+    HeightLine::Base=(HeightLine::Base.array()<Freq-1).select(HeightLine::Base,12);
     HeightLine::currentColum=2;
     /*OptiTree testTree;
     testTree.Root->SetValue(0,63);
@@ -49,7 +50,7 @@ void MainWindow::on_GenerateAndShow_clicked()
     cout<<u.equalto('(')<<u.equalto(')')<<endl;
     Raw=HeightLine(Rows+1,'R');
     queue<Region> p;
-    Raw.toSubRegion(p);
+    //Raw.toSubRegion(p);
     //QPixmap pxm=;
     //pxm.scaledToWidth(ui->ShowHeightLine->width(),Qt::SmoothTransformation);
     ui->ShowHeightLine->setPixmap(QPixmap::fromImage(Raw.toQImage().scaled(ui->ShowHeightLine->width(),ui->ShowHeightLine->height())));
