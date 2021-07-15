@@ -43,11 +43,14 @@ public:
     //VectorXi LowLine();
     VectorXi DepthLine();
     bool isWater(int);
+    bool isAir(int);
+    bool isNormalBlock(int);
     int validHigh(int);
     int Size;//totalSize
     VectorXi HighLine;//Height refers to LowLine
     VectorXi LowLine;
-
+    static MatrixXi *Base;
+    short currentColum;
     static Vector3i Both;
     static Vector3i Left;
     static Vector3i Right;

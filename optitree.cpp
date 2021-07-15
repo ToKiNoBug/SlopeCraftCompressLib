@@ -376,6 +376,16 @@ inline bool HeightLine::isWater(int index)
     return HighLine(index)-LowLine(index);//0->普通方块，>=1 -> 水柱
 }//水柱罩顶玻璃计入最高，但托底玻璃不计入
 
+inline bool HeightLine::isAir(int index)
+{
+    return (*Base)(index-0,currentColum)==0;
+}
+
+inline bool HeightLine::isNormalBlock(int index)
+{
+    return (!isAir(index))&&(!isWater(index));
+}
+
 QImage HeightLine::toQImage()
 {
     int H=HighLine.maxCoeff()-LowLine.minCoeff()+1;
