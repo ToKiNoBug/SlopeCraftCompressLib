@@ -4,8 +4,8 @@
 #include "optitree.h"
 #include <iomanip>
 
-#define Rows 512
-#define Freq 5
+#define Rows 256
+#define Freq 20
 using namespace std;
 using namespace Eigen;
 MainWindow::MainWindow(QWidget *parent)
@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     HeightLine::Base=MatrixXi::Random(Rows,Rows);
     HeightLine::Base=HeightLine::Base-Freq*(HeightLine::Base/Freq);
-    HeightLine::Base=(HeightLine::Base.array()<Freq-1).select(HeightLine::Base,12);
+    //HeightLine::Base=(HeightLine::Base.array()<Freq-1).select(HeightLine::Base,12);
     HeightLine::currentColum=2;
 
 }
