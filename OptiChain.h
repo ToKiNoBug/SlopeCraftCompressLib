@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <Eigen/Dense>
 #include <list>
+#include <queue>
 using namespace std;
 using namespace Eigen;
 enum RegionType {idp,Hang,Invalid};
@@ -18,6 +19,7 @@ public:
     bool isIDP() const;
     bool isHang() const;
     bool isValid() const;
+    int size() const;
 };
 
 class OptiChain
@@ -30,10 +32,22 @@ public:
     ~OptiChain();
 
     static ArrayXXi Base;
+    static Array3i Both;
+    static Array3i Left;
+    static Array3i Right;
+
     int Col;
     ArrayXi HighLine;
     ArrayXi LowLine;
-    list<Region> Chain;
+    queue<Region> Chain;//将一整列按水/空气切分为若干个大的孤立区间
+    list<Region> SubChain;//将Chain中每个大的孤立区间切分为若干“最大单孤立区间”和“悬空区间”组成的串
+
+    void divideToChain();
+    void divideToSubChain();
+
+    bool isAir(int index);
+    bool isWater(int index);
+    bool isSolidBlock(int index);
 
     void Sink(const Region&);
     ArrayXi toDepth();
