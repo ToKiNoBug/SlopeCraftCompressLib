@@ -4,7 +4,6 @@
 #include <QDebug>
 #include <Eigen/Dense>
 #include <list>
-#define NInf -10000000
 using namespace std;
 using namespace Eigen;
 enum RegionType {idp,Hang,Invalid};

@@ -1,5 +1,7 @@
 #include "OptiChain.h"
 
+#define NInf -10000000
+#define MapSize (Base.rows()+1)
 ArrayXXi OptiChain::Base=MatrixXi::Zero(0,0);
 
 Region::Region(short _Beg,short _End,RegionType _Type)
@@ -35,4 +37,10 @@ OptiChain::OptiChain(ArrayXi High,ArrayXi Low,int _col)
     HighLine=High;
     LowLine=Low;
     Chain.clear();
+}
+
+int OptiChain::validHeight(int index)
+{
+    if(index<0||index>=MapSize)return NInf;
+
 }
