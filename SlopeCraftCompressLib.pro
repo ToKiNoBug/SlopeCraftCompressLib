@@ -11,11 +11,13 @@ CONFIG += c++11
 INCLUDEPATH += D:\eigen-3.3.9
 
 SOURCES += \
+    OptiChain.cpp \
     main.cpp \
     mainwindow.cpp \
     optitree.cpp
 
 HEADERS += \
+    OptiChain.h \
     mainwindow.h \
     optitree.h
 
