@@ -8,6 +8,7 @@
 #include <list>
 #include <queue>
 #include <QRgb>
+#include <QImage>
 using namespace std;
 using namespace Eigen;
 enum RegionType {idp,Hang,Invalid};
@@ -70,6 +71,6 @@ private:
     void divideToSubChain(const Region&);
 };
 
-QImage Mat2Image(ArrayXXi&,int pixelSize);
+QImage Mat2Image(const ArrayXXi&,int pixelSize);
 
 #endif // OPTICHAIN_H

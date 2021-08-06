@@ -292,6 +292,41 @@ void OptiChain::divideToSubChain(const Region &Cur)
 
 QImage OptiChain::toQImage(int pixelSize)
 {
-    ArrayXXi QRgbMat(Base.rows()+1,Base.cols());
+    HighLine-=LowLine.minCoeff();
+    LowLine-=LowLine.minCoeff();
+    ArrayXXi QRgbMat(HighLine.maxCoeff()+1,MapSize);
 
+    QRgbMat.setConstant(isFColor);
+
+    for(int i=0;i<MapSize;i++)
+    {
+        if(isAir(i))
+            continue;
+        if(isWater(i))
+        {
+            QRgbMat.block(HighLine(i),i,HighLine(i)-LowLine(i)+1,1)=WaterColor;
+            continue;
+        }
+        QRgbMat(HighLine(i),i)=isTColor;
+    }
+
+    return Mat2Image(QRgbMat,pixelSize);
+}
+
+QImage Mat2Image(const ArrayXXi& mat,int pixelSize)
+{
+    QImage img(mat.cols(),mat.rows(),QImage::Format_ARGB32);
+
+    QRgb* SL=nullptr;
+
+    for(int r=0;r<mat.rows()*pixelSize;r++)
+    {
+        SL=(QRgb*)img.scanLine(r);
+        for(int c=0;c<mat.cols()*pixelSize;c++)
+        {
+            SL[c]=mat(r/pixelSize,c/pixelSize);
+        }
+    }
+
+    return img;
 }

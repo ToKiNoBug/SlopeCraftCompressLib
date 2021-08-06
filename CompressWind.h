@@ -24,6 +24,10 @@ public:
     ~compressWind();
     ArrayXXi sampleHighMap;
     ArrayXXi sampleLowMap;
+    OptiChain Compressor;
+private slots:
+    void on_LoadColumn_clicked();
+
 private:
     Ui::compressWind *ui;
 };
