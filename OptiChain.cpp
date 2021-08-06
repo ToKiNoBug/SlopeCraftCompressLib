@@ -279,7 +279,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
     HL.setZero(MapSize+1);
     HL<<HighLine.segment(Cur.Beg,Cur.size()),
             NInf;
-    HL(0)=NInf;
+    //HL(0)=NInf;
 
     qDebug()<<"size(HL)=["<<HL.rows()<<','<<HL.cols()<<']';
 

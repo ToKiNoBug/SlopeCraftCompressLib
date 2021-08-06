@@ -8,6 +8,12 @@ compressWind::compressWind(QWidget *parent)
     ui->setupUi(this);
     getBHL(OptiChain::Base,sampleHighMap,sampleLowMap);
     qDebug("读入样本数据成功");
+
+    //截取前32/33列
+    sampleHighMap=sampleHighMap.block(0,0,33,256);
+    sampleLowMap=sampleLowMap.block(0,0,33,256);
+    OptiChain::Base=OptiChain::Base.block(0,0,32,256);
+
     qDebug()<<"size(Base)=["<<OptiChain::Base.rows()<<','<<OptiChain::Base.cols()<<']';
     qDebug()<<"size(HighMap)=["<<sampleHighMap.rows()<<','<<sampleHighMap.cols()<<']';
     qDebug()<<"size(LowMap)=["<<sampleLowMap.rows()<<','<<sampleLowMap.cols()<<']';
