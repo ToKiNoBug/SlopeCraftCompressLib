@@ -5,6 +5,9 @@
 
 #include <QMainWindow>
 #include <Eigen/Dense>
+#include <iostream>
+#include <fstream>
+
 using namespace std;
 using namespace Eigen;
 QT_BEGIN_NAMESPACE
@@ -22,8 +25,8 @@ public:
 private:
     Ui::compressWind *ui;
 };
-#ifdef useBHL
+
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low);
-#endif
+
 
 #endif // COMPRESSWIND_H

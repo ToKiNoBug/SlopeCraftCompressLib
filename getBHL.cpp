@@ -1,6 +1,21 @@
 #include "CompressWind.h"
 
-#ifdef useBHL
+#define LoadBHLfromFile
+
+void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
+{
+    int *data=new int[257*256];
+    fstream base,high,low;
+
+    base.open("D:\\Git\\SlopeCraftCompressLib\\test_Base.Toki",ios::in|ios::binary);
+    base.read((char*)data,256*256*sizeof(int));
+    Base=MatrixXi::Map(data,256,256).transpose();
+
+}
+
+#ifdef LoadBHLfromFile
+
+#else
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
 {
     Base.setZero(256,256);
