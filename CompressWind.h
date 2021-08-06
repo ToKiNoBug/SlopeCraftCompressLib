@@ -7,6 +7,7 @@
 #include <Eigen/Dense>
 #include <iostream>
 #include <fstream>
+#include "OptiChain.h"
 
 using namespace std;
 using namespace Eigen;
@@ -21,7 +22,8 @@ class compressWind : public QMainWindow
 public:
     compressWind(QWidget *parent = nullptr);
     ~compressWind();
-
+    ArrayXXi sampleHighMap;
+    ArrayXXi sampleLowMap;
 private:
     Ui::compressWind *ui;
 };

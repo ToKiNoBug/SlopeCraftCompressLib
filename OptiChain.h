@@ -1,6 +1,6 @@
 #ifndef OPTICHAIN_H
 #define OPTICHAIN_H
-#include "CompressWind.h"
+
 #include <iostream>
 #include <string>
 #include <QDebug>
