@@ -32,6 +32,16 @@ inline int Region::size() const
     return (End-Beg+1);
 }
 
+inline short Region::indexLocal2Global(short indexLocal) const
+{
+    return indexLocal+Beg;
+}
+
+inline short Region::indexGlobal2Local(short indexGlobal) const
+{
+    return indexGlobal-Beg;
+}
+
 OptiChain::OptiChain(int size)
 {
     if(size<0)
@@ -199,12 +209,14 @@ void OptiChain::divideToSubChain()
 
 void OptiChain::divideToSubChain(const Region &Cur)
 {
-    ArrayXi HL=HighLine.segment(Cur.Beg,Cur.size());
+    ArrayXi HL;
+    HL<<HighLine.segment(Cur.Beg,Cur.size()),NInf;
+
     ArrayXi ScanBoth,ScanLeft,ScanRight;
     ScanBoth.setZero(Cur.size());
     ScanLeft.setZero(Cur.size());
     ScanRight.setZero(Cur.size());
-    for(int i=1;i<Cur.size()-1;i++)//用三个算子扫描一个大孤立区间
+    for(int i=1;i<Cur.size();i++)//用三个算子扫描一个大孤立区间
     {
         ScanBoth(i)=(HL.segment(i-1,3)*Both).sum()>0;
         ScanLeft(i)=(HL.segment(i-1,3)*Left).sum()>0;
@@ -214,5 +226,19 @@ void OptiChain::divideToSubChain(const Region &Cur)
     ScanRight*=ScanBoth;
     bool isReady=false;
     //表示已经检测出极大值区间的入口，找到出口就装入一个极大值区间
-    Region Temp(-1,-1,Hang);
+    Region Temp(-1,-1,Hang);//均写入绝对index而非相对index
+    for(int i=0;i<Cur.size();i++)
+    {
+        if(!isReady&&ScanLeft(i))
+        {
+            isReady=true;
+            Temp.Beg=Cur.indexLocal2Global(i);
+        }
+        if(isReady&&ScanRight(i))
+        {
+            isReady=false;
+            Temp.End=Cur.indexLocal2Global(i);
+            SubChain.push_back(Temp);
+        }
+    }
 }

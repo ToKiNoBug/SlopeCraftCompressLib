@@ -13,7 +13,6 @@ class Region
 {
 public:
     Region(short=-1,short=-1,RegionType=Invalid);
-    static short rows;
     short Beg;
     short End;
     RegionType type;
@@ -21,8 +20,8 @@ public:
     bool isHang() const;
     bool isValid() const;
     int size() const;
-    short indexLocal2Global(short);
-    short indexGlobal2Local(short);
+    short indexLocal2Global(short) const;
+    short indexGlobal2Local(short) const;
 };
 
 class OptiChain
