@@ -7,9 +7,15 @@
 #include <Eigen/Dense>
 #include <list>
 #include <queue>
+#include <QRgb>
 using namespace std;
 using namespace Eigen;
 enum RegionType {idp,Hang,Invalid};
+
+extern QRgb isTColor;
+extern QRgb isFColor;
+extern QRgb WaterColor;
+extern QRgb greyColor;
 
 class Region
 {

@@ -6,7 +6,10 @@ ArrayXXi OptiChain::Base=MatrixXi::Zero(0,0);
 Array3i OptiChain::Both(-1,2,-1);
 Array3i OptiChain::Left(-1,1,0);
 Array3i OptiChain::Right(0,1,-1);
-
+QRgb isTColor=qRgb(0,0,0);
+QRgb isFColor=qRgb(255,255,255);
+QRgb WaterColor=qRgb(0,64,255);
+QRgb greyColor=qRgb(192,192,192);
 Region::Region(short _Beg,short _End,RegionType _Type)
 {
     Beg=_Beg;End=_End;type=_Type;
@@ -285,4 +288,10 @@ void OptiChain::divideToSubChain(const Region &Cur)
         SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
 
     dispSubChain();
+}
+
+QImage OptiChain::toQImage(int pixelSize)
+{
+    ArrayXXi QRgbMat(Base.rows()+1,Base.cols());
+
 }
