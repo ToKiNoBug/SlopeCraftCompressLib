@@ -54,8 +54,9 @@ public:
     static Array3i Right;
 
 #ifdef showImg
-    static QLabel *SinkIDP;
+    //static QLabel *SinkIDP;
     static QLabel *SinkAll;
+    static bool AllowSinkHang;
 #endif
 
     int Col;

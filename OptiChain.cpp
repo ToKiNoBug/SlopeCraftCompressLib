@@ -6,8 +6,15 @@ ArrayXXi OptiChain::Base=MatrixXi::Zero(0,0);
 Array3i OptiChain::Both(-1,2,-1);
 Array3i OptiChain::Left(-1,1,0);
 Array3i OptiChain::Right(0,1,-1);
-QLabel* OptiChain::SinkIDP=nullptr;
+//QLabel* OptiChain::SinkIDP=nullptr;
+
+#ifdef showImg
 QLabel* OptiChain::SinkAll=nullptr;
+bool OptiChain::AllowSinkHang=false;
+#else
+    #define AllowSinkHang true
+#endif
+
 QRgb isTColor=qRgb(0,0,0);
 QRgb isFColor=qRgb(255,255,255);
 QRgb WaterColor=qRgb(0,64,255);
@@ -198,12 +205,20 @@ inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
 
 void OptiChain::divideAndCompress()
 {
+    divideToChain();
     while(!Chain.empty())
     {
         divideToSubChain();
+
         for(auto it=SubChain.begin();it!=SubChain.end();it++)
-            Sink(*it);
+            if(it->isIDP())Sink(*it);
+
+        for(auto it=SubChain.begin();it!=SubChain.end();it++)
+            if(AllowSinkHang&&it->isHang())Sink(*it);
     }
+#ifdef showImg
+    SinkAll->setPixmap(QPixmap::fromImage(toQImage(3)));
+#endif
 }
 
 void OptiChain::divideToChain()
@@ -233,11 +248,11 @@ void OptiChain::divideToChain()
     }
     Temp.End=MapSize-1;
     Chain.push(Temp);
+    qDebug()<<"将第"<<Col<<"列切分为"<<Chain.size()<<"个孤立区间";
 }
 
 void OptiChain::divideToSubChain()
 {
-    if(Chain.empty())return;
     if(!Chain.front().isValid())
     {
         Chain.pop();
@@ -251,19 +266,28 @@ void OptiChain::divideToSubChain()
 
 void OptiChain::divideToSubChain(const Region &Cur)
 {
+    qDebug()<<"开始分析区间"+QString::fromStdString(Cur.toString());
     if(Cur.size()<=3)
     {
         SubChain.push_back(Region(Cur.Beg,Cur.End,idp));
+        qDebug()<<"Chain中的区间"+QString::fromStdString(Cur.toString())+"过小，直接简单沉降";
         return;
     }
+    qDebug()<<"size(HighLine)=["<<HighLine.rows()<<','<<HighLine.cols()<<']';
 
     ArrayXi HL;
-    HL<<HighLine.segment(Cur.Beg,Cur.size()),NInf;
+    HL.setZero(MapSize+1);
+    HL<<HighLine.segment(Cur.Beg,Cur.size()),
+            NInf;
+    HL(0)=NInf;
+
+    qDebug()<<"size(HL)=["<<HL.rows()<<','<<HL.cols()<<']';
 
     ArrayXi ScanBoth,ScanLeft,ScanRight;
     ScanBoth.setZero(Cur.size());
     ScanLeft.setZero(Cur.size());
     ScanRight.setZero(Cur.size());
+    qDebug("开始用三个一维算子扫描HighLine和LowLine");
     for(int i=1;i<Cur.size();i++)//用三个算子扫描一个大孤立区间
     {
         ScanBoth(i)=(HL.segment(i-1,3)*Both).sum()>0;
@@ -272,7 +296,9 @@ void OptiChain::divideToSubChain(const Region &Cur)
     }
     ScanLeft*=ScanBoth;
     ScanRight*=ScanBoth;
+    qDebug("扫描完成");
     bool isReady=false;
+
     //表示已经检测出极大值区间的入口，找到出口就装入一个极大值区间
     Region Temp(-1,-1,Hang);//均写入绝对index而非相对index
     for(int i=0;i<Cur.size();i++)
@@ -289,6 +315,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
             SubChain.push_back(Temp);
         }
     }
+    qDebug("已将极大值区间串联成链，开始填充孤立区间");
     auto prev=SubChain.begin();
     for(auto it=SubChain.begin();it!=SubChain.end();prev=it++)
     {
@@ -316,7 +343,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
     }
     else    if(SubChain.back().End<Cur.End)
         SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
-
+    qDebug("SubChain构建完成");
     dispSubChain();
 }
 
@@ -331,8 +358,9 @@ void OptiChain::Sink(const Region &Reg)
     {
         HighLine.segment(Reg.Beg,Reg.size())-=LowLine.segment(Reg.Beg,Reg.size()).minCoeff();
         LowLine.segment(Reg.Beg,Reg.size())-=LowLine.segment(Reg.Beg,Reg.size()).minCoeff();
+        return;
     }
-    if(Reg.isHang())
+    if(AllowSinkHang&&Reg.isHang())
     {
         int BegGap=validHeight(Reg.Beg)-validHeight(Reg.Beg-1);
         int EndGap=validHeight(Reg.End)-validHeight(Reg.End+1);
@@ -344,9 +372,10 @@ void OptiChain::Sink(const Region &Reg)
 
 QImage OptiChain::toQImage(int pixelSize)
 {
+    int maxHeight=HighLine.maxCoeff()+1;
     HighLine-=LowLine.minCoeff();
     LowLine-=LowLine.minCoeff();
-    ArrayXXi QRgbMat(HighLine.maxCoeff()+1,MapSize);
+    ArrayXXi QRgbMat(maxHeight,MapSize);
 
     QRgbMat.setConstant(isFColor);
 
@@ -361,6 +390,7 @@ QImage OptiChain::toQImage(int pixelSize)
         }
         QRgbMat(HighLine(i),i)=isTColor;
     }
+    QRgbMat.colwise().reverseInPlace();
 
     return Mat2Image(QRgbMat,pixelSize);
 }

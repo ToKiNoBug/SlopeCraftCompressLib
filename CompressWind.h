@@ -28,6 +28,8 @@ public:
 private slots:
     void on_LoadColumn_clicked();
 
+    void on_Compress_clicked();
+
 private:
     Ui::compressWind *ui;
 };

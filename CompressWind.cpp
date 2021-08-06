@@ -14,8 +14,7 @@ compressWind::compressWind(QWidget *parent)
 
     ui->ColIndex->setMaximum(OptiChain::Base.cols()-1);
 #ifdef showImg
-    OptiChain::SinkIDP=ui->ShowSinkIDP;
-    OptiChain::SinkAll=ui->ShowSinkSuspended;
+    //OptiChain::SinkIDP=ui->ShowSinkIDP;
 #endif
 }
 
@@ -35,6 +34,14 @@ void compressWind::on_LoadColumn_clicked()
 
 void compressWind::on_Compress_clicked()
 {
+    OptiChain::SinkAll=ui->ShowSinkIDP;
+    OptiChain::AllowSinkHang=false;
+    Compressor.divideAndCompress();
 
+
+    OptiChain::SinkAll=ui->ShowSinkSuspended;
+    OptiChain::AllowSinkHang=true;
+    Compressor=OptiChain(sampleHighMap.col(Compressor.Col),sampleLowMap.col(Compressor.Col),Compressor.Col);
+    Compressor.divideAndCompress();
 }
 
