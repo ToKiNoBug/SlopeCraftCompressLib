@@ -1,5 +1,4 @@
 #include "CompressWind.h"
-//#define useBHL
 
 #ifdef useBHL
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
