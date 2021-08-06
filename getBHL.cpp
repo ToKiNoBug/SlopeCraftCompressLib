@@ -5,12 +5,27 @@
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
 {
     int *data=new int[257*256];
+    if(data==NULL)
+    {
+        qDebug("错误：data指针申请内存失败");
+    }
     fstream base,high,low;
 
     base.open("D:\\Git\\SlopeCraftCompressLib\\test_Base.Toki",ios::in|ios::binary);
     base.read((char*)data,256*256*sizeof(int));
-    Base=MatrixXi::Map(data,256,256).transpose();
+    Base=MatrixXi::Map(data,256,256);
+    base.close();
 
+    high.open("D:\\Git\\SlopeCraftCompressLib\\test_HighMap.Toki",ios::in|ios::binary);
+    high.read((char*)data,257*256*sizeof(int));
+    High=MatrixXi::Map(data,257,256);
+
+    high.open("D:\\Git\\SlopeCraftCompressLib\\test_LowMap.Toki",ios::in|ios::binary);
+    high.read((char*)data,257*256*sizeof(int));
+    Low=MatrixXi::Map(data,257,256);
+
+    delete[] data;
+    return;
 }
 
 #ifdef LoadBHLfromFile
