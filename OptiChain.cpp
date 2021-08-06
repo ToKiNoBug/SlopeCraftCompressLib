@@ -194,4 +194,25 @@ void OptiChain::divideToSubChain()
     }
     SubChain.clear();
 
+
+}
+
+void OptiChain::divideToSubChain(const Region &Cur)
+{
+    ArrayXi HL=HighLine.segment(Cur.Beg,Cur.size());
+    ArrayXi ScanBoth,ScanLeft,ScanRight;
+    ScanBoth.setZero(Cur.size());
+    ScanLeft.setZero(Cur.size());
+    ScanRight.setZero(Cur.size());
+    for(int i=1;i<Cur.size()-1;i++)//用三个算子扫描一个大孤立区间
+    {
+        ScanBoth(i)=(HL.segment(i-1,3)*Both).sum()>0;
+        ScanLeft(i)=(HL.segment(i-1,3)*Left).sum()>0;
+        ScanRight(i)=(HL.segment(i-1,3)*Right).sum()>0;
+    }
+    ScanLeft*=ScanBoth;
+    ScanRight*=ScanBoth;
+    bool isReady=false;
+    //表示已经检测出极大值区间的入口，找到出口就装入一个极大值区间
+    Region Temp(-1,-1,Hang);
 }

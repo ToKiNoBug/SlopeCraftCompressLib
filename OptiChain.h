@@ -13,6 +13,7 @@ class Region
 {
 public:
     Region(short=-1,short=-1,RegionType=Invalid);
+    static short rows;
     short Beg;
     short End;
     RegionType type;
@@ -20,6 +21,8 @@ public:
     bool isHang() const;
     bool isValid() const;
     int size() const;
+    short indexLocal2Global(short);
+    short indexGlobal2Local(short);
 };
 
 class OptiChain
@@ -53,6 +56,8 @@ public:
     ArrayXi toDepth();
     int validHeight(int index);
     QImage toQImage(int pixelSize);
+private:
+    void divideToSubChain(const Region&);
 };
 
 QImage Mat2Image(ArrayXXi&,int pixelSize);
