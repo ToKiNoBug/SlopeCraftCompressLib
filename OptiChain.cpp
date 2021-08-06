@@ -6,10 +6,13 @@ ArrayXXi OptiChain::Base=MatrixXi::Zero(0,0);
 Array3i OptiChain::Both(-1,2,-1);
 Array3i OptiChain::Left(-1,1,0);
 Array3i OptiChain::Right(0,1,-1);
+QLabel* OptiChain::SinkIDP=nullptr;
+QLabel* OptiChain::SinkAll=nullptr;
 QRgb isTColor=qRgb(0,0,0);
 QRgb isFColor=qRgb(255,255,255);
 QRgb WaterColor=qRgb(0,64,255);
 QRgb greyColor=qRgb(192,192,192);
+
 Region::Region(short _Beg,short _End,RegionType _Type)
 {
     Beg=_Beg;End=_End;type=_Type;
@@ -68,6 +71,11 @@ OptiChain::OptiChain(ArrayXi High,ArrayXi Low,int _col)
     HighLine=High;
     LowLine=Low;
     SubChain.clear();
+}
+
+OptiChain::~OptiChain()
+{
+    return;
 }
 
 int OptiChain::validHeight(int index)
@@ -188,6 +196,16 @@ inline void HeightLine::DealRegion(Region PR, list<Pair> &List)
 }
 */
 
+void OptiChain::divideAndCompress()
+{
+    while(!Chain.empty())
+    {
+        divideToSubChain();
+        for(auto it=SubChain.begin();it!=SubChain.end();it++)
+            Sink(*it);
+    }
+}
+
 void OptiChain::divideToChain()
 {
     while(!Chain.empty())Chain.pop();
@@ -227,11 +245,18 @@ void OptiChain::divideToSubChain()
     }
     SubChain.clear();
 
-
+    divideToSubChain(Chain.front());
+    Chain.pop();
 }
 
 void OptiChain::divideToSubChain(const Region &Cur)
 {
+    if(Cur.size()<=3)
+    {
+        SubChain.push_back(Region(Cur.Beg,Cur.End,idp));
+        return;
+    }
+
     ArrayXi HL;
     HL<<HighLine.segment(Cur.Beg,Cur.size()),NInf;
 
@@ -284,10 +309,37 @@ void OptiChain::divideToSubChain(const Region &Cur)
                 SubChain.insert(it,Temp);
         }
     }
-    if(SubChain.back().End<Cur.End)
+
+    if(SubChain.size()<=0)
+    {
+        SubChain.push_back(Cur);
+    }
+    else    if(SubChain.back().End<Cur.End)
         SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
 
     dispSubChain();
+}
+
+void OptiChain::Sink(const Region &Reg)
+{
+    if(!Reg.isValid())
+    {
+        qDebug()<<"无效区间："+QString::fromStdString(Reg.toString());
+        return;
+    }
+    if(Reg.isIDP())
+    {
+        HighLine.segment(Reg.Beg,Reg.size())-=LowLine.segment(Reg.Beg,Reg.size()).minCoeff();
+        LowLine.segment(Reg.Beg,Reg.size())-=LowLine.segment(Reg.Beg,Reg.size()).minCoeff();
+    }
+    if(Reg.isHang())
+    {
+        int BegGap=validHeight(Reg.Beg)-validHeight(Reg.Beg-1);
+        int EndGap=validHeight(Reg.End)-validHeight(Reg.End+1);
+        int offset=min(min(BegGap,EndGap)-1,LowLine.segment(Reg.Beg,Reg.size()).minCoeff());
+        HighLine.segment(Reg.Beg,Reg.size())-=offset;
+        LowLine.segment(Reg.Beg,Reg.size())-=offset;
+    }
 }
 
 QImage OptiChain::toQImage(int pixelSize)
@@ -315,7 +367,7 @@ QImage OptiChain::toQImage(int pixelSize)
 
 QImage Mat2Image(const ArrayXXi& mat,int pixelSize)
 {
-    QImage img(mat.cols(),mat.rows(),QImage::Format_ARGB32);
+    QImage img(mat.cols()*pixelSize,mat.rows()*pixelSize,QImage::Format_ARGB32);
 
     QRgb* SL=nullptr;
 

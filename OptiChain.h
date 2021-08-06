@@ -1,5 +1,7 @@
 #ifndef OPTICHAIN_H
 #define OPTICHAIN_H
+#define showImg
+
 
 #include <iostream>
 #include <string>
@@ -9,6 +11,7 @@
 #include <queue>
 #include <QRgb>
 #include <QImage>
+#include <QLabel>
 using namespace std;
 using namespace Eigen;
 enum RegionType {idp,Hang,Invalid};
@@ -43,10 +46,17 @@ public:
     OptiChain(ArrayXi,ArrayXi,int);
     ~OptiChain();
 
+    void divideAndCompress();
+
     static ArrayXXi Base;
     static Array3i Both;
     static Array3i Left;
     static Array3i Right;
+
+#ifdef showImg
+    static QLabel *SinkIDP;
+    static QLabel *SinkAll;
+#endif
 
     int Col;
     ArrayXi HighLine;

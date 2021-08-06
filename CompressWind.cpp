@@ -13,6 +13,10 @@ compressWind::compressWind(QWidget *parent)
     qDebug()<<"size(LowMap)=["<<sampleLowMap.rows()<<','<<sampleLowMap.cols()<<']';
 
     ui->ColIndex->setMaximum(OptiChain::Base.cols()-1);
+#ifdef showImg
+    OptiChain::SinkIDP=ui->ShowSinkIDP;
+    OptiChain::SinkAll=ui->ShowSinkSuspended;
+#endif
 }
 
 compressWind::~compressWind()
@@ -25,6 +29,12 @@ void compressWind::on_LoadColumn_clicked()
 {
     int colindex=ui->ColIndex->value();
     Compressor=OptiChain(sampleHighMap.col(colindex),sampleLowMap.col(colindex),colindex);
-    ui->ShowRaw->setPixmap(QPixmap::fromImage(Compressor.toQImage(1)));
+    ui->ShowRaw->setPixmap(QPixmap::fromImage(Compressor.toQImage(3)));
+}
+
+
+void compressWind::on_Compress_clicked()
+{
+
 }
 
