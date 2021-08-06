@@ -18,22 +18,8 @@
     <property name="bottomMargin">
      <number>9</number>
     </property>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>优化后</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>优化前</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QLabel" name="ShowHeightLine">
+    <item row="5" column="0" colspan="2">
+     <widget class="QLabel" name="Result2">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -54,8 +40,57 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="0">
+     <widget class="QSpinBox" name="ColIndex">
+      <property name="suffix">
+       <string>列</string>
+      </property>
+      <property name="prefix">
+       <string>第</string>
+      </property>
+      <property name="maximum">
+       <number>255</number>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QPushButton" name="Sink">
+      <property name="text">
+       <string>沉降孤立区段</string>
+      </property>
+     </widget>
+    </item>
     <item row="3" column="0" colspan="2">
-     <widget class="QLabel" name="ShowResult">
+     <widget class="QLabel" name="Result1">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>沉降孤立区间</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="2">
+     <widget class="QLabel" name="ShowRaw">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -77,16 +112,16 @@
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QPushButton" name="GenerateAndShow">
+     <widget class="QPushButton" name="Load">
       <property name="text">
-       <string>生成并显示</string>
+       <string>加载并显示</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QPushButton" name="doCompress">
+    <item row="4" column="0">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>优化高度</string>
+       <string>沉降悬空区段</string>
       </property>
      </widget>
     </item>
