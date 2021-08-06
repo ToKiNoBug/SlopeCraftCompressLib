@@ -248,7 +248,7 @@ void OptiChain::divideToChain()
     }
     Temp.End=MapSize-1;
     Chain.push(Temp);
-    qDebug()<<"将第"<<Col<<"列切分为"<<Chain.size()<<"个孤立区间";
+    //qDebug()<<"将第"<<Col<<"列切分为"<<Chain.size()<<"个孤立区间";
 }
 
 void OptiChain::divideToSubChain()
@@ -266,14 +266,14 @@ void OptiChain::divideToSubChain()
 
 void OptiChain::divideToSubChain(const Region &Cur)
 {
-    qDebug()<<"开始分析区间"+QString::fromStdString(Cur.toString());
+    //qDebug()<<"开始分析区间"+QString::fromStdString(Cur.toString());
     if(Cur.size()<=3)
     {
         SubChain.push_back(Region(Cur.Beg,Cur.End,idp));
-        qDebug()<<"Chain中的区间"+QString::fromStdString(Cur.toString())+"过小，直接简单沉降";
+        //qDebug()<<"Chain中的区间"+QString::fromStdString(Cur.toString())+"过小，直接简单沉降";
         return;
     }
-    qDebug()<<"size(HighLine)=["<<HighLine.rows()<<','<<HighLine.cols()<<']';
+    //qDebug()<<"size(HighLine)=["<<HighLine.rows()<<','<<HighLine.cols()<<']';
 
     ArrayXi HL;
     HL.setZero(MapSize+1);
@@ -281,13 +281,13 @@ void OptiChain::divideToSubChain(const Region &Cur)
             NInf;
     //HL(0)=NInf;
 
-    qDebug()<<"size(HL)=["<<HL.rows()<<','<<HL.cols()<<']';
+    //qDebug()<<"size(HL)=["<<HL.rows()<<','<<HL.cols()<<']';
 
     ArrayXi ScanBoth,ScanLeft,ScanRight;
     ScanBoth.setZero(Cur.size());
     ScanLeft.setZero(Cur.size());
     ScanRight.setZero(Cur.size());
-    qDebug("开始用三个一维算子扫描HighLine和LowLine");
+    //qDebug("开始用三个一维算子扫描HighLine和LowLine");
     for(int i=1;i<Cur.size();i++)//用三个算子扫描一个大孤立区间
     {
         ScanBoth(i)=(HL.segment(i-1,3)*Both).sum()>0;
@@ -315,7 +315,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
             SubChain.push_back(Temp);
         }
     }
-    qDebug("已将极大值区间串联成链，开始填充孤立区间");
+    //qDebug("已将极大值区间串联成链，开始填充孤立区间");
     auto prev=SubChain.begin();
     for(auto it=SubChain.begin();it!=SubChain.end();prev=it++)
     {
@@ -343,8 +343,8 @@ void OptiChain::divideToSubChain(const Region &Cur)
     }
     else    if(SubChain.back().End<Cur.End)
         SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
-    qDebug("SubChain构建完成");
-    dispSubChain();
+    //qDebug("SubChain构建完成");
+    //dispSubChain();
 }
 
 void OptiChain::Sink(const Region &Reg)

@@ -10,9 +10,11 @@ compressWind::compressWind(QWidget *parent)
     qDebug("读入样本数据成功");
 
     //截取前32/33列
-    sampleHighMap=sampleHighMap.block(0,0,33,256);
-    sampleLowMap=sampleLowMap.block(0,0,33,256);
-    OptiChain::Base=OptiChain::Base.block(0,0,32,256);
+    /*
+    sampleHighMap=MatrixXi(sampleHighMap.block(0,0,33,256));
+    sampleLowMap=MatrixXi(sampleLowMap.block(0,0,33,256));
+    OptiChain::Base=MatrixXi(OptiChain::Base.block(0,0,32,256));
+    */
 
     qDebug()<<"size(Base)=["<<OptiChain::Base.rows()<<','<<OptiChain::Base.cols()<<']';
     qDebug()<<"size(HighMap)=["<<sampleHighMap.rows()<<','<<sampleHighMap.cols()<<']';
@@ -40,6 +42,8 @@ void compressWind::on_LoadColumn_clicked()
 
 void compressWind::on_Compress_clicked()
 {
+    int rawHeight=Compressor.HighLine.maxCoeff();
+    int rawSquare=Compressor.HighLine.sum();
     OptiChain::SinkAll=ui->ShowSinkIDP;
     OptiChain::AllowSinkHang=false;
     Compressor.divideAndCompress();
@@ -49,5 +53,12 @@ void compressWind::on_Compress_clicked()
     OptiChain::AllowSinkHang=true;
     Compressor=OptiChain(sampleHighMap.col(Compressor.Col),sampleLowMap.col(Compressor.Col),Compressor.Col);
     Compressor.divideAndCompress();
+
+    int newHeight=Compressor.HighLine.maxCoeff();
+    int newSquare=Compressor.HighLine.sum();
+    qDebug()<<"压缩前高度："<<rawHeight<<"；压缩后高度："<<newHeight;
+    qDebug()<<"极值压缩率："<<100.0-100.0*newHeight/rawHeight<<'%';
+    qDebug()<<"积分压缩率："<<100.0-100.0*newSquare/rawSquare<<'%';
+
 }
 
