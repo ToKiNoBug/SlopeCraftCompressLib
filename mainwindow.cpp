@@ -13,10 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    HeightLine::Base=MatrixXi::Random(Rows,Rows);
-    HeightLine::Base=HeightLine::Base-Freq*(HeightLine::Base/Freq);
-    //HeightLine::Base=(HeightLine::Base.array()<Freq-1).select(HeightLine::Base,12);
-    HeightLine::currentColum=2;
 
 }
 

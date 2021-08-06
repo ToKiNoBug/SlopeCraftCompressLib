@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 //#include "heightline.h"
-#include "optitree.h"
+#include "OptiChain.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -15,8 +15,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    HeightLine Raw;
-    HeightLine Result;
+    ArrayXXi HighFullMap;
+    ArrayXXi LowFullMap;
 private slots:
     void on_GenerateAndShow_clicked();
 
@@ -25,4 +25,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
 };
+
+void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low);
 #endif // MAINWINDOW_H

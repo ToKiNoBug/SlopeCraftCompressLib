@@ -12,6 +12,7 @@ INCLUDEPATH += D:\eigen-3.3.9
 
 SOURCES += \
     OptiChain.cpp \
+    getBHL.cpp \
     main.cpp \
     mainwindow.cpp
 
