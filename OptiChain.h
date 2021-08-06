@@ -1,6 +1,7 @@
 #ifndef OPTICHAIN_H
 #define OPTICHAIN_H
 #include <iostream>
+#include <string>
 #include <QDebug>
 #include <Eigen/Dense>
 #include <list>
@@ -22,6 +23,7 @@ public:
     int size() const;
     short indexLocal2Global(short) const;
     short indexGlobal2Local(short) const;
+    string toString() const;
 };
 
 class OptiChain
@@ -55,6 +57,8 @@ public:
     ArrayXi toDepth();
     int validHeight(int index);
     QImage toQImage(int pixelSize);
+    //void dispChain();
+    void dispSubChain();
 private:
     void divideToSubChain(const Region&);
 };

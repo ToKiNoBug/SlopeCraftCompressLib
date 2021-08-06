@@ -42,6 +42,16 @@ inline short Region::indexGlobal2Local(short indexGlobal) const
     return indexGlobal-Beg;
 }
 
+string Region::toString() const
+{
+    if(!isValid())
+        return '{'+to_string(Beg)+','+to_string(End)+'}';//无效区间用大括号
+    if(isHang())
+        return '['+to_string(Beg)+','+to_string(End)+']';//悬空区间用中括号
+
+    return '('+to_string(Beg)+','+to_string(End)+')';//可沉降区间用括号
+}
+
 OptiChain::OptiChain(int size)
 {
     if(size<0)
@@ -81,6 +91,16 @@ inline bool OptiChain::isSolidBlock(int index)
 {
     if(index<0||index>=MapSize)return false;
     return(Base(index-1,Col)!=0&&Base(index-1,Col)!=12);
+}
+
+void OptiChain::dispSubChain()
+{
+    string out="";
+    for(auto it=SubChain.cbegin();it!=SubChain.cend();it++)
+    {
+        out+=it->toString();
+    }
+    cout<<out<<endl;
 }
 
 /*
@@ -241,4 +261,28 @@ void OptiChain::divideToSubChain(const Region &Cur)
             SubChain.push_back(Temp);
         }
     }
+    auto prev=SubChain.begin();
+    for(auto it=SubChain.begin();it!=SubChain.end();prev=it++)
+    {
+        if(it==SubChain.begin())
+        {
+            Temp.Beg=Cur.indexLocal2Global(0);
+            Temp.End=Cur.indexLocal2Global(it->Beg-1);
+            Temp.type=idp;
+            if(Temp.isValid())
+                SubChain.insert(it,Temp);
+        }
+        else
+        {
+            Temp.Beg=Cur.indexLocal2Global(prev->End+1);
+            Temp.End=Cur.indexLocal2Global(it->Beg-1);
+            Temp.type=idp;
+            if(Temp.isValid())
+                SubChain.insert(it,Temp);
+        }
+    }
+    if(SubChain.back().End<Cur.End)
+        SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
+
+    dispSubChain();
 }
