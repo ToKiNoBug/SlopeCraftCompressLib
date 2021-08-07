@@ -4,8 +4,8 @@
 
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
 {
-    const short rows=129,cols=128;
-    char type[]="air";
+    const short rows=1229,cols=910;
+    char type[]="extreme";
 
     int *data=new int[rows*cols];
     if(data==NULL)

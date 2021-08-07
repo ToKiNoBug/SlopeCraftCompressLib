@@ -217,7 +217,10 @@ void OptiChain::divideAndCompress()
             if(AllowSinkHang&&it->isHang())Sink(*it);
     }
 #ifdef showImg
-    SinkAll->setPixmap(QPixmap::fromImage(toQImage(3)));
+
+    int scaledH=SinkAll->height()-2;
+    int scaledW=SinkAll->width()-2;
+    SinkAll->setPixmap(QPixmap::fromImage(toQImage(3)).scaled(scaledW,scaledH));
 #endif
 }
 
@@ -287,7 +290,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
     ScanBoth.setZero(Cur.size());
     ScanLeft.setZero(Cur.size());
     ScanRight.setZero(Cur.size());
-    qDebug("开始用三个一维算子扫描HighLine和LowLine");
+    //qDebug("开始用三个一维算子扫描HighLine和LowLine");
     for(int i=1;i<Cur.size();i++)//用三个算子扫描一个大孤立区间
     {
         ScanBoth(i)=(HL.segment(i-1,3)*Both).sum()>0;
@@ -317,8 +320,8 @@ void OptiChain::divideToSubChain(const Region &Cur)
             Temp.Beg=-1;Temp.End=-1;
         }
     }
-    qDebug("已将极大值区间串联成链，即将开始填充孤立区间。此时的SubChain为：");
-    dispSubChain();
+    //qDebug("已将极大值区间串联成链，即将开始填充孤立区间。此时的SubChain为：");
+    //dispSubChain();
     auto prev=SubChain.begin();
     for(auto it=SubChain.begin();it!=SubChain.end();prev=it++)
     {
@@ -347,7 +350,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
     else    if(SubChain.back().End<Cur.End)
         SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
     qDebug("SubChain构建完成");
-    dispSubChain();
+    //dispSubChain();
 }
 
 void OptiChain::Sink(const Region &Reg)
