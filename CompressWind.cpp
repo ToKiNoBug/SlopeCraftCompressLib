@@ -36,11 +36,9 @@ void compressWind::on_LoadColumn_clicked()
 {
     int colindex=ui->ColIndex->value();
     Compressor=OptiChain(sampleHighMap.col(colindex),sampleLowMap.col(colindex),colindex);
-    qDebug()<<'a';
     ui->ShowRaw->setPixmap(QPixmap::fromImage(Compressor.toQImage(3)));
-    qDebug()<<'b';
-}
 
+}
 
 void compressWind::on_Compress_clicked()
 {

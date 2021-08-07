@@ -5,7 +5,7 @@
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
 {
     const short rows=129,cols=128;
-    char type[]="water";
+    char type[]="air";
 
     int *data=new int[rows*cols];
     if(data==NULL)

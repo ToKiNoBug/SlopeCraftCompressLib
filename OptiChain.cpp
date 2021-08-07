@@ -1,6 +1,6 @@
 #include "OptiChain.h"
 
-#define NInf -10000000
+#define NInf -100000
 #define MapSize (Base.rows())
 ArrayXXi OptiChain::Base=MatrixXi::Zero(0,0);
 Array3i OptiChain::Both(-1,2,-1);
@@ -117,7 +117,8 @@ void OptiChain::dispSubChain()
     {
         out+=it->toString();
     }
-    cout<<out<<endl;
+    qDebug()<<QString::fromStdString(out);
+    //cout<<out<<endl;
 }
 
 /*
@@ -247,7 +248,7 @@ void OptiChain::divideToChain()
     }
     Temp.End=MapSize-1;
     Chain.push(Temp);
-    //qDebug()<<"将第"<<Col<<"列切分为"<<Chain.size()<<"个孤立区间";
+    qDebug()<<"将第"<<Col<<"列切分为"<<Chain.size()<<"个孤立区间";
 }
 
 void OptiChain::divideToSubChain()
@@ -265,19 +266,19 @@ void OptiChain::divideToSubChain()
 
 void OptiChain::divideToSubChain(const Region &Cur)
 {
-    //qDebug()<<"开始分析区间"+QString::fromStdString(Cur.toString());
+    qDebug()<<"开始分析区间"+QString::fromStdString(Cur.toString());
     if(Cur.size()<=3)
     {
         SubChain.push_back(Region(Cur.Beg,Cur.End,idp));
-        //qDebug()<<"Chain中的区间"+QString::fromStdString(Cur.toString())+"过小，直接简单沉降";
+        qDebug()<<"Chain中的区间"+QString::fromStdString(Cur.toString())+"过小，直接简单沉降";
         return;
     }
     //qDebug()<<"size(HighLine)=["<<HighLine.rows()<<','<<HighLine.cols()<<']';
 
     ArrayXi HL;
-    HL.setZero(MapSize+1);
-    HL<<HighLine.segment(Cur.Beg,Cur.size()),
-            NInf;
+    HL.setZero(Cur.size()+1);
+    HL.segment(0,Cur.size())=HighLine.segment(Cur.Beg,Cur.size());
+    HL(Cur.size())=NInf;
     //HL(0)=NInf;
 
     //qDebug()<<"size(HL)=["<<HL.rows()<<','<<HL.cols()<<']';
@@ -286,7 +287,7 @@ void OptiChain::divideToSubChain(const Region &Cur)
     ScanBoth.setZero(Cur.size());
     ScanLeft.setZero(Cur.size());
     ScanRight.setZero(Cur.size());
-    //qDebug("开始用三个一维算子扫描HighLine和LowLine");
+    qDebug("开始用三个一维算子扫描HighLine和LowLine");
     for(int i=1;i<Cur.size();i++)//用三个算子扫描一个大孤立区间
     {
         ScanBoth(i)=(HL.segment(i-1,3)*Both).sum()>0;
@@ -306,30 +307,33 @@ void OptiChain::divideToSubChain(const Region &Cur)
         {
             isReady=true;
             Temp.Beg=Cur.indexLocal2Global(i);
+            Temp.End=-1;
         }
         if(isReady&&ScanRight(i))
         {
             isReady=false;
             Temp.End=Cur.indexLocal2Global(i);
             SubChain.push_back(Temp);
+            Temp.Beg=-1;Temp.End=-1;
         }
     }
-    //qDebug("已将极大值区间串联成链，开始填充孤立区间");
+    qDebug("已将极大值区间串联成链，即将开始填充孤立区间。此时的SubChain为：");
+    dispSubChain();
     auto prev=SubChain.begin();
     for(auto it=SubChain.begin();it!=SubChain.end();prev=it++)
     {
         if(it==SubChain.begin())
         {
             Temp.Beg=Cur.indexLocal2Global(0);
-            Temp.End=Cur.indexLocal2Global(it->Beg-1);
+            Temp.End=(it->Beg-1);
             Temp.type=idp;
             if(Temp.isValid())
                 SubChain.insert(it,Temp);
         }
         else
         {
-            Temp.Beg=Cur.indexLocal2Global(prev->End+1);
-            Temp.End=Cur.indexLocal2Global(it->Beg-1);
+            Temp.Beg=(prev->End+1);
+            Temp.End=(it->Beg-1);
             Temp.type=idp;
             if(Temp.isValid())
                 SubChain.insert(it,Temp);
@@ -342,8 +346,8 @@ void OptiChain::divideToSubChain(const Region &Cur)
     }
     else    if(SubChain.back().End<Cur.End)
         SubChain.push_back(Region(SubChain.back().End+1,Cur.End,idp));
-    //qDebug("SubChain构建完成");
-    //dispSubChain();
+    qDebug("SubChain构建完成");
+    dispSubChain();
 }
 
 void OptiChain::Sink(const Region &Reg)
@@ -361,9 +365,16 @@ void OptiChain::Sink(const Region &Reg)
     }
     if(AllowSinkHang&&Reg.isHang())
     {
-        int BegGap=validHeight(Reg.Beg)-validHeight(Reg.Beg-1);
-        int EndGap=validHeight(Reg.End)-validHeight(Reg.End+1);
-        int offset=min(min(BegGap,EndGap)-1,LowLine.segment(Reg.Beg,Reg.size()).minCoeff());
+        int BegGap;
+
+        BegGap=validHeight(Reg.Beg)-validHeight(Reg.Beg-1);
+
+        int EndGap;
+        if(isSolidBlock(Reg.End+1))
+            EndGap=validHeight(Reg.End)-validHeight(Reg.End+1);
+        else
+            EndGap=validHeight(Reg.End)-NInf;
+        int offset=min(max(min(BegGap,EndGap)-1,0),LowLine.segment(Reg.Beg,Reg.size()).minCoeff());
         HighLine.segment(Reg.Beg,Reg.size())-=offset;
         LowLine.segment(Reg.Beg,Reg.size())-=offset;
     }
@@ -396,7 +407,6 @@ QImage OptiChain::toQImage(int pixelSize)
 
 QImage Mat2Image(const ArrayXXi& mat,int pixelSize)
 {
-    qDebug()<<"Mat2Image";
     QImage img(mat.cols()*pixelSize,mat.rows()*pixelSize,QImage::Format_ARGB32);
 
     QRgb* SL=nullptr;
