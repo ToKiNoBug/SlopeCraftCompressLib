@@ -4,25 +4,30 @@
 
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
 {
-    int *data=new int[257*256];
+    const short rows=257,cols=256;
+    char type[]="test";
+
+    int *data=new int[rows*cols];
     if(data==NULL)
     {
         qDebug("错误：data指针申请内存失败");
     }
     fstream base,high,low;
-
-    base.open("D:\\Git\\SlopeCraftCompressLib\\test_Base.Toki",ios::in|ios::binary);
-    base.read((char*)data,256*256*sizeof(int));
-    Base=MatrixXi::Map(data,256,256);
+    string preFix="D:\\Git\\SlopeCraftCompressLib\\TestSamples\\";
+    string backFix[3]={"_Base.Toki","_HighMap.Toki","_LowMap.Toki"};
+    cout<<preFix+type+backFix[0]<<endl;
+    base.open(preFix+type+backFix[0],ios::in|ios::binary);
+    base.read((char*)data,rows*cols*sizeof(int));
+    Base=MatrixXi::Map(data,rows,cols);
     base.close();
 
-    high.open("D:\\Git\\SlopeCraftCompressLib\\test_HighMap.Toki",ios::in|ios::binary);
-    high.read((char*)data,257*256*sizeof(int));
-    High=MatrixXi::Map(data,257,256);
+    high.open(preFix+type+backFix[1],ios::in|ios::binary);
+    high.read((char*)data,rows*cols*sizeof(int));
+    High=MatrixXi::Map(data,rows,cols);
 
-    high.open("D:\\Git\\SlopeCraftCompressLib\\test_LowMap.Toki",ios::in|ios::binary);
-    high.read((char*)data,257*256*sizeof(int));
-    Low=MatrixXi::Map(data,257,256);
+    high.open(preFix+type+backFix[2],ios::in|ios::binary);
+    high.read((char*)data,rows*cols*sizeof(int));
+    Low=MatrixXi::Map(data,rows,cols);
 
     delete[] data;
     return;

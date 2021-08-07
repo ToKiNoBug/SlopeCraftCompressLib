@@ -95,20 +95,19 @@ int OptiChain::validHeight(int index)
 inline bool OptiChain::isAir(int index)
 {
     if(index<0||index>=MapSize)return true;
-    if(index==0)return false;
-    return (Base(index-1,Col)==0);
+    return (Base(index,Col)==0);
 }
 
 inline bool OptiChain::isWater(int index)
 {
-    if(index<=0||index>=MapSize)return false;
-    return (Base(index-1,Col)==12);
+    if(index<0||index>=MapSize)return false;
+    return (Base(index,Col)==12);
 }
 
 inline bool OptiChain::isSolidBlock(int index)
 {
     if(index<0||index>=MapSize)return false;
-    return(Base(index-1,Col)!=0&&Base(index-1,Col)!=12);
+    return(Base(index,Col)!=0&&Base(index,Col)!=12);
 }
 
 void OptiChain::dispSubChain()
