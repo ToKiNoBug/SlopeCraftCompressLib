@@ -4,8 +4,8 @@
 
 void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
 {
-    const short rows=257,cols=256;
-    char type[]="test";
+    const short rows=129,cols=128;
+    char type[]="water";
 
     int *data=new int[rows*cols];
     if(data==NULL)
@@ -24,10 +24,12 @@ void getBHL(ArrayXXi&Base,ArrayXXi&High,ArrayXXi&Low)
     high.open(preFix+type+backFix[1],ios::in|ios::binary);
     high.read((char*)data,rows*cols*sizeof(int));
     High=MatrixXi::Map(data,rows,cols);
+    high.close();
 
-    high.open(preFix+type+backFix[2],ios::in|ios::binary);
-    high.read((char*)data,rows*cols*sizeof(int));
+    low.open(preFix+type+backFix[2],ios::in|ios::binary);
+    low.read((char*)data,rows*cols*sizeof(int));
     Low=MatrixXi::Map(data,rows,cols);
+    low.close();
 
     delete[] data;
     return;

@@ -1,7 +1,7 @@
 #include "OptiChain.h"
 
 #define NInf -10000000
-#define MapSize (Base.rows()+1)
+#define MapSize (Base.rows())
 ArrayXXi OptiChain::Base=MatrixXi::Zero(0,0);
 Array3i OptiChain::Both(-1,2,-1);
 Array3i OptiChain::Left(-1,1,0);
@@ -384,7 +384,7 @@ QImage OptiChain::toQImage(int pixelSize)
             continue;
         if(isWater(i))
         {
-            QRgbMat.block(HighLine(i),i,HighLine(i)-LowLine(i)+1,1)=WaterColor;
+            QRgbMat.block(LowLine(i),i,HighLine(i)-LowLine(i)+1,1)=WaterColor;
             continue;
         }
         QRgbMat(HighLine(i),i)=isTColor;
@@ -396,6 +396,7 @@ QImage OptiChain::toQImage(int pixelSize)
 
 QImage Mat2Image(const ArrayXXi& mat,int pixelSize)
 {
+    qDebug()<<"Mat2Image";
     QImage img(mat.cols()*pixelSize,mat.rows()*pixelSize,QImage::Format_ARGB32);
 
     QRgb* SL=nullptr;
