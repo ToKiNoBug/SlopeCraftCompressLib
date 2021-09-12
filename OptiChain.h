@@ -28,10 +28,10 @@ This file is part of SlopeCraft.
 
 #include <iostream>
 #include <string>
-#include <QDebug>
 #include <Eigen/Dense>
 #include <list>
 #include <queue>
+#include <QDebug>
 #include <QRgb>
 #include <QImage>
 #include <QLabel>
