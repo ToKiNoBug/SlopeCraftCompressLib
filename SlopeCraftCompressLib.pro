@@ -1,7 +1,8 @@
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-INCLUDEPATH += D:\eigen-3.3.9
+INCLUDEPATH += D:/eigen-3.3.9 \
+                               D:/Git/SlopeCraft/Kernel
 CONFIG += c++11
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -9,6 +10,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    HeightLine.cpp \
     OptiChain.cpp \
     getBHL.cpp \
     main.cpp \
@@ -16,6 +18,7 @@ SOURCES += \
 
 HEADERS += \
     CompressWind.h \
+    HeightLine.h \
     OptiChain.h
 
 FORMS += \
